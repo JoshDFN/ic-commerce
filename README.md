@@ -25,8 +25,14 @@ A full-featured, decentralized e-commerce platform built on the Internet Compute
 
 - [Node.js](https://nodejs.org/) v18+
 - [Rust](https://www.rust-lang.org/) 1.70+
-- [DFINITY SDK](https://internetcomputer.org/docs/current/developer-docs/setup/install/) (dfx 0.24+)
-- [wasi2ic](https://github.com/AmbroseFernandes/wasi2ic) - required for SQLite support
+- [DFINITY SDK](https://internetcomputer.org/docs/current/developer-docs/setup/install/) (dfx 0.30+)
+
+After installing Rust, add the WebAssembly target and wasi2ic:
+
+```bash
+rustup target add wasm32-wasip1
+cargo install wasi2ic
+```
 
 ### Installation
 
@@ -41,7 +47,7 @@ npm install
 # Start local replica
 dfx start --background --clean
 
-# Deploy all canisters
+# Deploy all canisters (this also generates TypeScript bindings)
 dfx deploy
 ```
 
@@ -53,7 +59,9 @@ After deployment, you'll see URLs like:
 
 ## Configuration
 
-### Stripe Setup (Required for Payments)
+The app works out of the box for browsing and testing. Stripe and SendGrid are only needed if you want payment processing and email notifications.
+
+### Stripe Setup (Optional - for payment processing)
 
 1. Create a [Stripe account](https://dashboard.stripe.com/register)
 2. Get your API keys from [Stripe Dashboard > Developers > API Keys](https://dashboard.stripe.com/apikeys)
@@ -72,7 +80,7 @@ After deployment, you'll see URLs like:
 
 **Note**: Use test keys (`pk_test_`, `sk_test_`) for development. Switch to live keys for production.
 
-### SendGrid Setup (Required for Emails)
+### SendGrid Setup (Optional - for email notifications)
 
 1. Create a [SendGrid account](https://signup.sendgrid.com/)
 2. Create an API key at [Settings > API Keys](https://app.sendgrid.com/settings/api_keys)
