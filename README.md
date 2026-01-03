@@ -2,6 +2,19 @@
 
 A full-featured, decentralized e-commerce platform built on the Internet Computer (ICP). Inspired by Solidus, it provides a complete storefront with admin dashboard, payment processing, and email notifications.
 
+## Screenshots
+
+### Storefront
+![Storefront Home](screenshots/storefront/main.png)
+
+![Product Catalog](screenshots/storefront/products.png)
+
+### Admin Dashboard
+![Admin Dashboard](screenshots/admin/dashboard.png)
+
+### Product Management
+![Products](screenshots/admin/products.png)
+
 ## Features
 
 - **Storefront**: Product catalog, cart, checkout, order history
