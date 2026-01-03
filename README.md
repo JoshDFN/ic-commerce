@@ -36,12 +36,16 @@ A full-featured, decentralized e-commerce platform built on the Internet Compute
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18+
-- [Rust](https://www.rust-lang.org/) 1.70+
+- [Node.js](https://nodejs.org/) v22+ (LTS recommended)
+- [Rust](https://www.rust-lang.org/tools/install) 1.80+ (via rustup)
 - [DFINITY SDK](https://internetcomputer.org/docs/current/developer-docs/setup/install/) (dfx 0.30+)
 
-After installing Rust, add the WebAssembly target and wasi2ic:
+**Install Rust via rustup** (not Homebrew):
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
+After installing Rust, add the WebAssembly target and wasi2ic:
 ```bash
 rustup target add wasm32-wasip1
 cargo install wasi2ic
