@@ -1,0 +1,806 @@
+type AddressDetail = record {
+  id : int64;
+  firstname : text;
+  city : text;
+  zipcode : text;
+  country_code : text;
+  phone : opt text;
+  address1 : text;
+  address2 : opt text;
+  state_name : opt text;
+  lastname : text;
+};
+type StoreSetting = record { key : text; value : text };
+type UpdateSettingsInput = record { settings : vec StoreSetting };
+type EmailSettings = record {
+  provider : text;
+  api_key : text;
+  sender_email : text;
+  active : bool;
+};
+type UpdateEmailSettingsInput = record {
+  provider : text;
+  api_key : text;
+  sender_email : text;
+  active : bool;
+};
+type Result_5 = variant { Ok; Err : text };
+type Result_27 = variant { Ok : vec StoreSetting; Err : text };
+type Result_28 = variant { Ok : EmailSettings; Err : text };
+type AddressInput = record {
+  firstname : text;
+  city : text;
+  zipcode : text;
+  country_code : opt text;
+  phone : opt text;
+  address1 : text;
+  address2 : opt text;
+  state_name : opt text;
+  lastname : text;
+};
+type AdminOrderSummary = record {
+  id : int64;
+  total : int64;
+  shipment_state : opt text;
+  payment_state : opt text;
+  tracking_number : opt text;
+  created_at : int64;
+  email : opt text;
+  state : text;
+  number : text;
+  completed_at : opt int64;
+  item_count : int64;
+};
+type AuthResult = record {
+  "principal" : text;
+  role : UserRole;
+  user_id : int64;
+};
+type CreateProductInput = record {
+  sku : opt text;
+  meta_description : opt text;
+  available_on : opt int64;
+  image_url : opt text;
+  backorderable : opt bool;
+  name : text;
+  slug : text;
+  description : opt text;
+  stock : opt int64;
+  taxon_ids : opt vec int64;
+  price : int64;
+  meta_title : opt text;
+  promotionable : opt bool;
+};
+type DashboardStats = record {
+  total_customers : int64;
+  total_products : int64;
+  low_stock_count : int64;
+  pending_orders : int64;
+  total_orders : int64;
+  total_revenue : int64;
+};
+type LineItemDetail = record {
+  id : int64;
+  image_url : opt text;
+  variant_id : int64;
+  product_name : text;
+  product_slug : text;
+  currency : text;
+  quantity : int64;
+  price : int64;
+  total : int64;
+};
+type OptionValueRef = record {
+  id : int64;
+  name : text;
+  presentation : text;
+  option_type_name : text;
+};
+type AdjustmentDetail = record {
+  id : int64;
+  label : opt text;
+  amount : int64;
+  source_type : opt text;
+  adjustable_type : text;
+  included : bool;
+};
+type PaymentDetail = record {
+  id : int64;
+  amount : int64;
+  state : text;
+  payment_method_name : text;
+  created_at : int64;
+};
+type OrderDetail = record {
+  id : int64;
+  total : int64;
+  shipment_state : opt text;
+  shipment : opt ShipmentDetail;
+  payment_state : opt text;
+  line_items : vec LineItemDetail;
+  adjustments : vec AdjustmentDetail;
+  payments : vec PaymentDetail;
+  created_at : int64;
+  email : opt text;
+  state : text;
+  number : text;
+  adjustment_total : int64;
+  shipment_total : int64;
+  tax_total : int64;
+  promo_total : int64;
+  item_total : int64;
+  completed_at : opt int64;
+  ship_address : opt AddressDetail;
+  bill_address : opt AddressDetail;
+  item_count : int64;
+};
+type OrderListResponse = record {
+  per_page : int64;
+  orders : vec AdminOrderSummary;
+  page : int64;
+  total_pages : int64;
+  total_count : int64;
+};
+type OrderQueryParams = record {
+  per_page : opt int64;
+  shipment_state : opt text;
+  page : opt int64;
+  payment_state : opt text;
+  state : opt text;
+};
+type OrderSummary = record {
+  id : int64;
+  total : int64;
+  shipment_state : opt text;
+  payment_state : opt text;
+  created_at : int64;
+  state : text;
+  number : text;
+  completed_at : opt int64;
+  item_count : int64;
+};
+type ProductDetail = record {
+  id : int64;
+  meta_description : opt text;
+  updated_at : int64;
+  available_on : opt int64;
+  name : text;
+  slug : text;
+  description : opt text;
+  properties : vec ProductProperty;
+  variants : vec VariantDetail;
+  created_at : int64;
+  taxons : vec TaxonRef;
+  discontinue_on : opt int64;
+  price : int64;
+  meta_title : opt text;
+  promotionable : bool;
+  images : vec ProductImage;
+};
+type ProductImage = record {
+  id : int64;
+  alt : opt text;
+  url : text;
+  variant_id : int64;
+  position : int64;
+};
+type ProductListResponse = record {
+  per_page : int64;
+  page : int64;
+  total_pages : int64;
+  products : vec ProductSummary;
+  total_count : int64;
+};
+type ProductProperty = record {
+  value : opt text;
+  name : text;
+  presentation : text;
+};
+type ProductQueryParams = record {
+  q : opt text;
+  per_page : opt int64;
+  page : opt int64;
+  sort : opt text;
+  in_stock : opt bool;
+  taxon_id : opt int64;
+};
+type ProductSummary = record {
+  id : int64;
+  image_url : opt text;
+  name : text;
+  slug : text;
+  description : opt text;
+  available : bool;
+  stock : int64;
+  price : int64;
+};
+type SetAddressInput = record {
+  use_shipping_for_billing : opt bool;
+  shipping : AddressInput;
+  billing : opt AddressInput;
+  email : text;
+};
+type ShipmentDetail = record {
+  id : int64;
+  cost : int64;
+  tracking : opt text;
+  state : text;
+  shipping_method_id : opt int64;
+  number : text;
+  shipping_method_name : opt text;
+  shipped_at : opt int64;
+};
+type ShippingMethod = record {
+  id : int64;
+  tracking_url : opt text;
+  code : opt text;
+  cost : int64;
+  name : text;
+  admin_name : opt text;
+  service_level : opt text;
+  carrier : opt text;
+  display_on : opt text;
+  active : bool;
+};
+type TaxonDetail = record {
+  id : int64;
+  permalink : opt text;
+  name : text;
+  product_count : int64;
+  parent_id : opt int64;
+  position : int64;
+  depth : int64;
+};
+type TaxonRef = record { id : int64; permalink : opt text; name : text };
+type TaxonomyWithTaxons = record {
+  id : int64;
+  name : text;
+  taxons : vec TaxonDetail;
+  position : int64;
+};
+type UpdateProductInput = record {
+  meta_description : opt text;
+  available_on : opt int64;
+  name : opt text;
+  slug : opt text;
+  description : opt text;
+  stock : opt int64;
+  discontinue_on : opt int64;
+  price : opt int64;
+  meta_title : opt text;
+  taxon_ids : opt vec int64;
+};
+type UserRole = variant { Customer; Guest; Admin };
+type VariantDetail = record {
+  id : int64;
+  sku : text;
+  option_values : vec OptionValueRef;
+  backorderable : bool;
+  is_master : bool;
+  stock : int64;
+  price : int64;
+  position : int64;
+};
+
+type CreateTaxonomyInput = record {
+  name : text;
+  position : opt int64;
+};
+type CreateTaxonInput = record {
+  taxonomy_id : int64;
+  parent_id : opt int64;
+  name : text;
+  description : opt text;
+  permalink : opt text;
+  position : opt int64;
+};
+type UpdateTaxonInput = record {
+  name : opt text;
+  description : opt text;
+  permalink : opt text;
+  parent_id : opt int64;
+  position : opt int64;
+};
+type ApplyCouponInput = record {
+  code : text;
+};
+type PromotionRule = record {
+  id : int64;
+  rule_type : text;
+  preferences : text;
+};
+type PromotionAction = record {
+  id : int64;
+  action_type : text;
+  calculator_type : text;
+  preferences : text;
+};
+type Promotion = record {
+  id : int64;
+  name : text;
+  description : opt text;
+  code : opt text;
+  starts_at : opt int64;
+  expires_at : opt int64;
+  usage_limit : opt int64;
+  usage_count : int64;
+  active : bool;
+  rules : vec PromotionRule;
+  actions : vec PromotionAction;
+};
+type CreatePromotionInput = record {
+  name : text;
+  description : opt text;
+  code : opt text;
+  starts_at : opt int64;
+  expires_at : opt int64;
+  usage_limit : opt int64;
+  active : opt bool;
+};
+type UpdatePromotionInput = record {
+  name : opt text;
+  description : opt text;
+  code : opt text;
+  starts_at : opt int64;
+  expires_at : opt int64;
+  usage_limit : opt int64;
+  active : opt bool;
+};
+type AddPromotionRuleInput = record {
+  promotion_id : int64;
+  rule_type : text;
+  preferences : text;
+};
+type AddPromotionActionInput = record {
+  promotion_id : int64;
+  action_type : text;
+  calculator_type : text;
+  preferences : text;
+};
+type StockLocation = record {
+  id : int64;
+  name : text;
+  code : opt text;
+  address1 : opt text;
+  address2 : opt text;
+  city : opt text;
+  state_name : opt text;
+  zipcode : opt text;
+  country_code : text;
+  phone : opt text;
+  active : bool;
+  is_default : bool;
+};
+type CreateStockLocationInput = record {
+  name : text;
+  code : opt text;
+  address1 : opt text;
+  city : opt text;
+  state_name : opt text;
+  zipcode : opt text;
+  country_code : opt text;
+  phone : opt text;
+  is_default : opt bool;
+};
+type UpdateStockLocationInput = record {
+  name : opt text;
+  code : opt text;
+  address1 : opt text;
+  city : opt text;
+  state_name : opt text;
+  zipcode : opt text;
+  country_code : opt text;
+  active : opt bool;
+  is_default : opt bool;
+};
+type StockItem = record {
+  id : int64;
+  stock_location_id : int64;
+  stock_location_name : text;
+  variant_id : int64;
+  variant_sku : text;
+  product_name : text;
+  count_on_hand : int64;
+  backorderable : bool;
+};
+type StockListResponse = record {
+  items : vec StockItem;
+  total_count : int64;
+  page : int64;
+  per_page : int64;
+  total_pages : int64;
+};
+type StockQueryParams = record {
+  stock_location_id : opt int64;
+  low_stock : opt bool;
+  q : opt text;
+  page : opt int64;
+  per_page : opt int64;
+};
+type StockAdjustmentInput = record {
+  stock_item_id : int64;
+  quantity : int64;
+  reason : opt text;
+};
+type CreateShippingMethodInput = record {
+  name : text;
+  admin_name : opt text;
+  code : opt text;
+  carrier : opt text;
+  service_level : opt text;
+  tracking_url : opt text;
+  display_on : opt text;
+  base_cost : int64;
+  active : opt bool;
+};
+type UpdateShippingMethodInput = record {
+  name : opt text;
+  admin_name : opt text;
+  code : opt text;
+  carrier : opt text;
+  service_level : opt text;
+  tracking_url : opt text;
+  display_on : opt text;
+  base_cost : opt int64;
+  active : opt bool;
+};
+type TaxRate = record {
+  id : int64;
+  name : opt text;
+  amount : float64;
+  zone_id : opt int64;
+  zone_name : opt text;
+  tax_category_id : opt int64;
+  tax_category_name : opt text;
+  included_in_price : bool;
+  show_rate_in_label : bool;
+};
+type CreateTaxRateInput = record {
+  name : text;
+  amount : float64;
+  zone_id : int64;
+  tax_category_id : opt int64;
+  included_in_price : opt bool;
+};
+type UpdateTaxRateInput = record {
+  name : opt text;
+  amount : opt float64;
+  zone_id : opt int64;
+  tax_category_id : opt int64;
+  included_in_price : opt bool;
+};
+type ZoneMember = record {
+  id : int64;
+  zoneable_type : text;
+  zoneable_id : text;
+};
+type Zone = record {
+  id : int64;
+  name : text;
+  description : opt text;
+  member_count : int64;
+  members : vec ZoneMember;
+};
+type ZoneMemberInput = record {
+  zoneable_type : text;
+  zoneable_id : text;
+};
+type CreateZoneInput = record {
+  name : text;
+  description : opt text;
+  members : vec ZoneMemberInput;
+};
+type UpdateZoneInput = record {
+  name : opt text;
+  description : opt text;
+  members : opt vec ZoneMemberInput;
+};
+type TaxCategory = record {
+  id : int64;
+  name : text;
+  description : opt text;
+  is_default : bool;
+  tax_code : opt text;
+};
+type PaymentMethod = record {
+  id : int64;
+  name : text;
+  method_type : text;
+  description : opt text;
+  active : bool;
+  auto_capture : bool;
+  position : int64;
+  available_to_users : bool;
+  available_to_admin : bool;
+  test_mode : opt bool;
+  api_key_set : bool;
+  publishable_key : opt text;
+};
+type UpdatePaymentMethodInput = record {
+  name : opt text;
+  description : opt text;
+  active : opt bool;
+  auto_capture : opt bool;
+  position : opt int64;
+  api_key : opt text;
+  publishable_key : opt text;
+  webhook_secret : opt text;
+  test_mode : opt bool;
+};
+type StripeWebhookInput = record {
+  payload : text;
+  stripe_signature : text;
+};
+type UserDetail = record {
+  id : int64;
+  "principal" : text;
+  email : opt text;
+  role : text;
+  roles : vec text;
+  permissions : vec text;
+  created_at : int64;
+  order_count : int64;
+  total_spent : int64;
+};
+type UserQueryParams = record {
+  role : opt text;
+  q : opt text;
+  page : opt int64;
+  per_page : opt int64;
+};
+type UserListResponse = record {
+  users : vec UserDetail;
+  total_count : int64;
+  page : int64;
+  per_page : int64;
+  total_pages : int64;
+};
+type UpdateUserInput = record {
+  email : opt text;
+  role : opt text;
+  roles : opt vec text;
+};
+type RefundReason = record {
+  id : int64;
+  name : text;
+  active : bool;
+};
+type CreateRefundInput = record {
+  payment_id : int64;
+  amount : int64;
+  reason_id : opt int64;
+};
+
+type Result = variant { Ok : OrderDetail; Err : text };
+type Result_Void = variant { Ok; Err : text };
+type Result_Int64 = variant { Ok : int64; Err : text };
+type Result_OrderDetailOpt = variant { Ok : opt OrderDetail; Err : text };
+type Result_DashboardStats = variant { Ok : DashboardStats; Err : text };
+type Result_OrderSummaryVec = variant { Ok : vec OrderSummary; Err : text };
+type Result_ProductDetail = variant { Ok : ProductDetail; Err : text };
+type Result_ProductListResponse = variant { Ok : ProductListResponse; Err : text };
+type Result_ShippingMethodVec = variant { Ok : vec ShippingMethod; Err : text };
+type Result_TaxonomyVec = variant { Ok : vec TaxonomyWithTaxons; Err : text };
+type Result_AuthResult = variant { Ok : AuthResult; Err : text };
+type Result_PromotionVec = variant { Ok : vec Promotion; Err : text };
+type Result_StockLocationVec = variant { Ok : vec StockLocation; Err : text };
+type Result_StockListResponse = variant { Ok : StockListResponse; Err : text };
+type Result_TaxRateVec = variant { Ok : vec TaxRate; Err : text };
+type Result_ZoneVec = variant { Ok : vec Zone; Err : text };
+type Result_TaxCategoryVec = variant { Ok : vec TaxCategory; Err : text };
+type Result_PaymentMethodVec = variant { Ok : vec PaymentMethod; Err : text };
+type Result_UserListResponse = variant { Ok : UserListResponse; Err : text };
+type Result_UserDetail = variant { Ok : UserDetail; Err : text };
+type Result_RefundReasonVec = variant { Ok : vec RefundReason; Err : text };
+type Result_Text = variant { Ok : text; Err : text };
+type Result_OrderListResponse = variant { Ok : OrderListResponse; Err : text };
+
+type CreateOptionTypeInput = record {
+  name : text;
+  presentation : text;
+};
+
+type CreateOptionValueInput = record {
+  option_type_id : int64;
+  name : text;
+  presentation : text;
+};
+
+type CreateVariantInput = record {
+  product_id : int64;
+  sku : text;
+  price : int64;
+  stock : int64;
+  option_value_ids : vec int64;
+};
+
+type Result_ChoiceList = variant { Ok : vec OptionValueRef; Err : text };
+
+type EmailTemplate = record {
+  id : int64;
+  event_type : text;
+  name : text;
+  subject : text;
+  body_html : text;
+  body_text : text;
+  active : bool;
+};
+
+type UpdateEmailTemplateInput = record {
+  subject : opt text;
+  body_html : opt text;
+  body_text : opt text;
+  active : opt bool;
+};
+
+type Result_EmailTemplate = variant { Ok : EmailTemplate; Err : text };
+type Result_EmailTemplateVec = variant { Ok : vec EmailTemplate; Err : text };
+
+type CustomerSummary = record {
+  id : int64;
+  email : text;
+  customer_type : text;
+  "principal" : opt text;
+  order_count : int64;
+  total_spent : int64;
+  first_order_at : int64;
+  last_order_at : int64;
+};
+
+type CustomerListResponse = record {
+  customers : vec CustomerSummary;
+  total_count : int64;
+  page : int64;
+  per_page : int64;
+  total_pages : int64;
+};
+
+type CustomerQueryParams = record {
+  q : opt text;
+  customer_type : opt text;
+  page : opt int64;
+  per_page : opt int64;
+};
+
+type Result_CustomerListResponse = variant { Ok : CustomerListResponse; Err : text };
+
+type RevenueStats = record {
+  total_revenue : int64;
+  total_orders : int64;
+  average_order_value : int64;
+  orders_today : int64;
+  revenue_today : int64;
+  orders_this_week : int64;
+  revenue_this_week : int64;
+  orders_this_month : int64;
+  revenue_this_month : int64;
+};
+
+type TopProduct = record {
+  product_id : int64;
+  product_name : text;
+  quantity_sold : int64;
+  revenue : int64;
+};
+
+type RecentOrderSummary = record {
+  id : int64;
+  number : text;
+  total : int64;
+  created_at : int64;
+  email : opt text;
+};
+
+type RevenueData = record {
+  stats : RevenueStats;
+  top_products : vec TopProduct;
+  recent_orders : vec RecentOrderSummary;
+};
+
+type Result_RevenueData = variant { Ok : RevenueData; Err : text };
+
+service : () -> {
+  initialize_auth : () -> (Result_AuthResult);
+  get_user_role : () -> (UserRole) query;
+  
+  get_products : (ProductQueryParams) -> (Result_ProductListResponse) query;
+  get_product : (text) -> (Result_ProductDetail) query;
+  create_product : (CreateProductInput) -> (Result_Int64);
+  update_product : (int64, UpdateProductInput) -> (Result_Void);
+  delete_product : (int64) -> (Result_Void);
+
+  add_product_image : (int64, text, opt text) -> (Result_Int64);
+  delete_product_image : (int64) -> (Result_Void);
+  reorder_product_images : (int64, vec int64) -> (Result_Void);
+  
+  get_taxonomies : () -> (Result_TaxonomyVec) query;
+  admin_create_taxonomy : (CreateTaxonomyInput) -> (Result_Int64);
+  admin_update_taxonomy : (int64, text) -> (Result_Void);
+  admin_delete_taxonomy : (int64) -> (Result_Void);
+  admin_create_taxon : (CreateTaxonInput) -> (Result_Int64);
+  admin_update_taxon : (int64, UpdateTaxonInput) -> (Result_Void);
+  admin_delete_taxon : (int64) -> (Result_Void);
+  
+  get_cart : (opt text) -> (Result_OrderDetailOpt) query;
+  add_to_cart : (int64, int64, opt text) -> (Result);
+  update_line_item : (int64, int64, opt text) -> (Result);
+  remove_from_cart : (int64, opt text) -> (Result);
+  apply_coupon : (ApplyCouponInput, opt text) -> (Result);
+  
+  admin_get_promotions : () -> (Result_PromotionVec) query;
+  admin_create_promotion : (CreatePromotionInput) -> (Result_Int64);
+  admin_update_promotion : (int64, UpdatePromotionInput) -> (Result_Void);
+  admin_add_promotion_rule : (AddPromotionRuleInput) -> (Result_Int64);
+  admin_add_promotion_action : (AddPromotionActionInput) -> (Result_Int64);
+  
+  set_order_address : (SetAddressInput, opt text) -> (Result);
+  
+  admin_get_stock_locations : () -> (Result_StockLocationVec) query;
+  admin_create_stock_location : (CreateStockLocationInput) -> (Result_Int64);
+  admin_update_stock_location : (int64, UpdateStockLocationInput) -> (Result_Void);
+  admin_delete_stock_location : (int64) -> (Result_Void);
+  admin_get_stock_items : (StockQueryParams) -> (Result_StockListResponse) query;
+  admin_adjust_stock : (StockAdjustmentInput) -> (Result_Void);
+  
+  get_shipping_methods : () -> (Result_ShippingMethodVec) query;
+  admin_get_shipping_methods : () -> (Result_ShippingMethodVec) query;
+  set_shipping_method : (int64, opt text) -> (Result);
+  admin_create_shipping_method : (CreateShippingMethodInput) -> (Result_Int64);
+  admin_update_shipping_method : (int64, UpdateShippingMethodInput) -> (Result_Void);
+  admin_delete_shipping_method : (int64) -> (Result_Void);
+  
+  complete_checkout : (opt text) -> (Result);
+  get_my_orders : () -> (Result_OrderSummaryVec) query;
+  get_order : (text) -> (Result) query;
+  admin_get_orders : (OrderQueryParams) -> (Result_OrderListResponse) query;
+  admin_update_order_state : (int64, text) -> (Result_Void);
+  admin_ship_order : (int64, opt text) -> (Result_Void);
+  admin_update_tracking : (int64, opt text) -> (Result_Void);
+  
+  get_dashboard_stats : () -> (Result_DashboardStats) query;
+  get_revenue_stats : () -> (Result_RevenueData) query;
+
+  get_tax_rates : () -> (Result_TaxRateVec) query;
+  admin_create_tax_rate : (CreateTaxRateInput) -> (Result_Int64);
+  admin_update_tax_rate : (int64, UpdateTaxRateInput) -> (Result_Void);
+  admin_delete_tax_rate : (int64) -> (Result_Void);
+  
+  get_zones : () -> (Result_ZoneVec) query;
+  admin_create_zone : (CreateZoneInput) -> (Result_Int64);
+  admin_update_zone : (int64, UpdateZoneInput) -> (Result_Void);
+  admin_delete_zone : (int64) -> (Result_Void);
+  get_tax_categories : () -> (Result_TaxCategoryVec) query;
+  
+  get_payment_methods : () -> (Result_PaymentMethodVec) query;
+  admin_get_payment_methods : () -> (Result_PaymentMethodVec) query;
+  admin_update_payment_method : (int64, UpdatePaymentMethodInput) -> (Result_Void);
+  
+  admin_get_users : (UserQueryParams) -> (Result_UserListResponse) query;
+  admin_get_user : (int64) -> (Result_UserDetail) query;
+  admin_update_user : (int64, UpdateUserInput) -> (Result_Void);
+  admin_get_customers : (CustomerQueryParams) -> (Result_CustomerListResponse) query;
+  
+  get_refund_reasons : () -> (Result_RefundReasonVec) query;
+  admin_create_refund : (CreateRefundInput) -> (Result_Int64);
+  
+  get_option_types : () -> (Result_ChoiceList) query;
+  create_option_type : (CreateOptionTypeInput) -> (Result_Int64);
+  create_option_value : (CreateOptionValueInput) -> (Result_Int64);
+  create_variant : (CreateVariantInput) -> (Result_Int64);
+
+  create_payment_intent : (int64) -> (Result_Text);
+  create_stripe_payment_intent : (int64, opt text) -> (Result_Text);
+  create_stripe_checkout_session : (int64, text, text, opt text) -> (Result_Text);
+  record_stripe_payment : (int64, text, text, opt text) -> (Result_Void);
+  handle_stripe_webhook : (StripeWebhookInput) -> (Result_Text);
+  subscribe_newsletter : (text) -> (Result_Text);
+  get_store_settings : () -> (Result_27) query;
+  update_store_settings : (UpdateSettingsInput) -> (Result_5);
+  get_email_settings : () -> (Result_28) query;
+  update_email_settings : (UpdateEmailSettingsInput) -> (Result_Void);
+
+  get_email_templates : () -> (Result_EmailTemplateVec) query;
+  get_email_template : (text) -> (Result_EmailTemplate) query;
+  update_email_template : (text, UpdateEmailTemplateInput) -> (Result_Void);
+  send_test_email : (text, text) -> (Result_Text);
+}

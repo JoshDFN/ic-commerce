@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+target/
+
+# DFX local state
+.dfx/
+
+# Pulled dependencies (candid files etc)
+deps/
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated declarations (regenerate with dfx generate)
+# Keeping these tracked for convenience, but could be ignored:
+# src/declarations/
+
+# Rust
+Cargo.lock
+*.pdb
+
+# Test coverage
+coverage/
