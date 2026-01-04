@@ -113,8 +113,11 @@ dfx deps pull
 dfx deps init
 dfx deps deploy
 
-# Deploy all canisters (this also generates TypeScript bindings)
-dfx deploy
+# Deploy backend first (creates canister IDs and writes .env)
+dfx deploy backend
+
+# Deploy frontend (uses canister IDs from .env)
+dfx deploy frontend
 ```
 
 ### Access the App

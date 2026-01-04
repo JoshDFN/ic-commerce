@@ -23,9 +23,13 @@ dfx deps init
 echo "Deploying Internet Identity..."
 dfx deps deploy
 
-# Deploy canisters
-echo "Deploying canisters..."
-dfx deploy
+# Deploy backend first (creates canister IDs and writes .env)
+echo "Deploying backend..."
+dfx deploy backend
+
+# Deploy frontend (uses canister IDs from .env)
+echo "Deploying frontend..."
+dfx deploy frontend
 
 # Get frontend URL
 FRONTEND_ID=$(dfx canister id frontend)
