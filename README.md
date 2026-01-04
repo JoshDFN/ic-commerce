@@ -1,5 +1,7 @@
 # IC Commerce
 
+> **Beta** - This project is under active development. APIs and features may change.
+
 A full-featured, decentralized e-commerce platform built on the Internet Computer (ICP). Inspired by Solidus, it provides a complete storefront with admin dashboard, payment processing, and email notifications.
 
 ## Screenshots
@@ -242,3 +244,7 @@ Ensure your Stripe webhook secret is correctly configured in Payment Methods set
 - **[Solidus](https://github.com/solidusio/solidus)**: This project's data model and admin UX design were inspired by Solidus, an open-source e-commerce platform for Ruby on Rails. The implementation is entirely new, written in Rust for the Internet Computer.
 - **[DFINITY](https://internetcomputer.org/)**: Internet Computer platform
 - **[ic-sqlite](https://github.com/AmbroseFernandes/ic-sqlite)**: SQLite for IC canisters
+
+## License
+
+[MIT](LICENSE)
