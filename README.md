@@ -105,8 +105,11 @@ cd ic-commerce
 # Install dependencies
 npm install
 
-# Start local replica
+# Start local replica (--clean resets canister IDs)
 dfx start --background --clean
+
+# Remove stale .env (required after --clean)
+rm -f .env
 
 # Pull and deploy Internet Identity (required on first run)
 dfx deps pull
