@@ -234,6 +234,14 @@ dfx stop
 ### "Function not found" errors
 Run `dfx generate` to regenerate Candid bindings after backend changes.
 
+### Stale canister IDs after clean restart
+If you run `dfx start --clean`, delete the old .env file before redeploying:
+```bash
+rm .env
+dfx deploy backend
+dfx deploy frontend
+```
+
 ### Payment verification failing
 Ensure your Stripe webhook secret is correctly configured in Payment Methods settings.
 

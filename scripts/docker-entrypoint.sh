@@ -3,6 +3,9 @@ set -e
 
 echo "Starting IC Commerce..."
 
+# Remove stale .env (--clean creates new canister IDs)
+rm -f .env
+
 # Start dfx in background
 echo "Starting dfx replica..."
 dfx start --background --clean
