@@ -30,6 +30,10 @@ dfx deps deploy
 echo "Deploying backend..."
 dfx deploy backend
 
+# Add Vite-prefixed env vars (Vite only exposes VITE_ prefixed vars to frontend)
+echo "Configuring environment for Vite..."
+./scripts/setup-env.sh
+
 # Deploy frontend (uses canister IDs from .env)
 echo "Deploying frontend..."
 dfx deploy frontend

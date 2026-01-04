@@ -119,6 +119,9 @@ dfx deps deploy
 # Deploy backend first (creates canister IDs and writes .env)
 dfx deploy backend
 
+# Add Vite env vars (required - Vite only exposes VITE_ prefixed variables)
+./scripts/setup-env.sh
+
 # Deploy frontend (uses canister IDs from .env)
 dfx deploy frontend
 ```
@@ -212,18 +215,47 @@ dfx generate
 
 ## Mainnet Deployment
 
+### Prerequisites
+
+1. **Cycles**: You need ICP tokens converted to cycles. Deployment costs approximately 1-2T cycles.
+2. **dfx identity**: Create or use an existing identity:
+   ```bash
+   dfx identity new my-mainnet-identity
+   dfx identity use my-mainnet-identity
+   ```
+
+### Deploy to Mainnet
+
 ```bash
-# Deploy to mainnet (requires cycles)
-dfx deploy --network ic
+# Create canisters on mainnet (one-time)
+dfx canister create --network ic --all
+
+# Deploy backend first
+dfx deploy backend --network ic
+
+# Add Vite env vars for mainnet
+DFX_NETWORK=ic ./scripts/setup-env.sh
+
+# Deploy frontend
+dfx deploy frontend --network ic
 
 # Check cycles balance
 dfx cycles balance --network ic
 ```
 
-**Important for mainnet**:
-- Switch Stripe to live API keys
-- Use a production SendGrid account
-- Configure proper CORS and security headers
+### After Deployment
+
+Your app will be available at:
+- **Storefront**: `https://<frontend-canister-id>.ic0.app`
+- **Admin**: `https://<frontend-canister-id>.ic0.app/admin`
+
+### Production Checklist
+
+- [ ] Switch Stripe to **live API keys** (not test keys)
+- [ ] Use a production SendGrid account with verified sender domain
+- [ ] Update Stripe webhook URL to mainnet canister URL
+- [ ] Consider setting up a custom domain via [boundary nodes](https://internetcomputer.org/docs/current/developer-docs/web-apps/custom-domains/using-custom-domains)
+- [ ] Monitor cycles balance and top up as needed
 
 ## Troubleshooting
 
@@ -238,10 +270,18 @@ dfx stop
 Run `dfx generate` to regenerate Candid bindings after backend changes.
 
 ### Stale canister IDs after clean restart
-If you run `dfx start --clean`, delete the old .env file before redeploying:
+If you run `dfx start --clean`, delete the old .env file and redeploy:
 ```bash
 rm .env
 dfx deploy backend
+./scripts/setup-env.sh
+dfx deploy frontend
+```
+
+### "Canister ID is required" error
+This means the Vite environment variables are missing. Run the setup script:
+```bash
+./scripts/setup-env.sh
 dfx deploy frontend
 ```
 
