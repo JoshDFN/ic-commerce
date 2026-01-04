@@ -17,6 +17,7 @@ echo "Replica is ready!"
 # Pull dependencies (Internet Identity)
 echo "Pulling dependencies..."
 dfx deps pull
+dfx deps init
 
 # Deploy dependencies first
 echo "Deploying Internet Identity..."
