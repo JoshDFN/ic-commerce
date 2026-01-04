@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.dfx/
+dist/
+target/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local

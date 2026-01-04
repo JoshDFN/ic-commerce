@@ -34,7 +34,49 @@ A full-featured, decentralized e-commerce platform built on the Internet Compute
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: Docker (Recommended)
+
+No local dependencies needed - just Docker!
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd ic-commerce
+
+# Build and start everything
+docker compose up --build
+```
+
+Wait for the build to complete (first run takes ~10-15 minutes to install Rust toolchain). You'll see:
+```
+============================================
+  IC Commerce is running!
+============================================
+
+  Storefront:  http://<canister-id>.localhost:4943
+  Admin:       http://<canister-id>.localhost:4943/admin
+
+  Dev Server:  http://localhost:5173
+============================================
+```
+
+**What's included in the Docker image:**
+- Node.js 22
+- Rust with wasm32-wasip1 target
+- wasi2ic
+- dfx (DFINITY SDK)
+
+**Hot reload**: Edit files in `src/` and changes reflect immediately.
+
+**Stop**: Press `Ctrl+C` or run `docker compose down`
+
+**Clean restart**: `docker compose down -v && docker compose up --build`
+
+---
+
+### Option 2: Local Installation
+
+#### Prerequisites
 
 - [Node.js](https://nodejs.org/) v22+ (LTS recommended)
 - [Rust](https://www.rust-lang.org/tools/install) 1.80+ (via rustup)
@@ -51,7 +93,7 @@ rustup target add wasm32-wasip1
 cargo install wasi2ic
 ```
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repository

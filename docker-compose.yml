@@ -1,0 +1,26 @@
+services:
+  ic-commerce:
+    build: .
+    ports:
+      # DFX replica - access canisters at http://localhost:4943
+      - "4943:4943"
+      # Vite dev server with hot reload
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reload (excludes node_modules and build artifacts)
+      - ./src:/app/src:delegated
+      - ./public:/app/public:delegated
+      # Persist dfx state between restarts
+      - dfx-data:/home/developer/.local/share/dfx
+      # Persist cargo cache for faster rebuilds
+      - cargo-cache:/home/developer/.cargo/registry
+      - cargo-git:/home/developer/.cargo/git
+    environment:
+      - VITE_DFX_NETWORK=local
+    stdin_open: true
+    tty: true
+
+volumes:
+  dfx-data:
+  cargo-cache:
+  cargo-git:
