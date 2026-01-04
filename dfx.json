@@ -19,7 +19,8 @@
       "type": "assets",
       "source": ["dist"],
       "build": "npm run build",
-      "dependencies": ["backend"]
+      "dependencies": ["backend"],
+      "post_install": "./scripts/post-install.sh"
     }
   },
   "output_env_file": ".env",
