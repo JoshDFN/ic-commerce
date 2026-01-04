@@ -18,9 +18,8 @@
     "frontend": {
       "type": "assets",
       "source": ["dist"],
-      "build": "npm run build",
-      "dependencies": ["backend"],
-      "post_install": "./scripts/post-install.sh"
+      "build": ["./scripts/post-install.sh", "npm run build"],
+      "dependencies": ["backend"]
     }
   },
   "output_env_file": ".env",
