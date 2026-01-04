@@ -119,10 +119,7 @@ dfx deps deploy
 # Deploy backend first (creates canister IDs and writes .env)
 dfx deploy backend
 
-# Add Vite env vars (required - Vite only exposes VITE_ prefixed variables)
-./scripts/setup-env.sh
-
-# Deploy frontend (uses canister IDs from .env)
+# Deploy frontend (auto-runs setup-env.sh to add VITE_ variables)
 dfx deploy frontend
 ```
 
@@ -233,10 +230,7 @@ dfx canister create --network ic --all
 # Deploy backend first
 dfx deploy backend --network ic
 
-# Add Vite env vars for mainnet
-DFX_NETWORK=ic ./scripts/setup-env.sh
-
-# Deploy frontend
+# Deploy frontend (auto-runs setup-env.sh)
 dfx deploy frontend --network ic
 
 # Check cycles balance
@@ -274,14 +268,12 @@ If you run `dfx start --clean`, delete the old .env file and redeploy:
 ```bash
 rm .env
 dfx deploy backend
-./scripts/setup-env.sh
 dfx deploy frontend
 ```
 
 ### "Canister ID is required" error
-This means the Vite environment variables are missing. Run the setup script:
+This means the Vite environment variables are missing. Redeploy the frontend:
 ```bash
-./scripts/setup-env.sh
 dfx deploy frontend
 ```
 
