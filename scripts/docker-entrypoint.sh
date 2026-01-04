@@ -14,6 +14,14 @@ until dfx ping &>/dev/null; do
 done
 echo "Replica is ready!"
 
+# Pull dependencies (Internet Identity)
+echo "Pulling dependencies..."
+dfx deps pull
+
+# Deploy dependencies first
+echo "Deploying Internet Identity..."
+dfx deps deploy
+
 # Deploy canisters
 echo "Deploying canisters..."
 dfx deploy
