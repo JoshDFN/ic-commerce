@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     ca-certificates \
+    socat \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 22

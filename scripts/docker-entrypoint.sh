@@ -6,9 +6,9 @@ echo "Starting IC Commerce..."
 # Remove stale .env (--clean creates new canister IDs)
 rm -f .env
 
-# Start dfx in background
+# Start dfx in background on internal port
 echo "Starting dfx replica..."
-dfx start --background --clean
+dfx start --background --clean --host 127.0.0.1:8943
 
 # Wait for replica to be ready
 echo "Waiting for replica..."
@@ -33,6 +33,12 @@ dfx deploy backend
 # Deploy frontend (build command auto-runs setup-env.sh)
 echo "Deploying frontend..."
 dfx deploy frontend
+
+# Start socat to proxy external connections to dfx replica
+# dfx binds to 127.0.0.1:8943, socat forwards 0.0.0.0:4943 -> 127.0.0.1:8943
+# This allows external access via standard port 4943
+echo "Starting network proxy for external access..."
+socat TCP-LISTEN:4943,fork,reuseaddr,bind=0.0.0.0 TCP:127.0.0.1:8943 &
 
 # Get frontend URL
 FRONTEND_ID=$(dfx canister id frontend)
