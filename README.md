@@ -219,6 +219,13 @@ dfx cycles balance --network ic
 
 ## Troubleshooting
 
+### dfx start fails or hangs
+If you have other dfx projects running, stop them first:
+```bash
+dfx killall
+dfx stop
+```
+
 ### "Function not found" errors
 Run `dfx generate` to regenerate Candid bindings after backend changes.
 
