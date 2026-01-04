@@ -106,6 +106,11 @@ npm install
 # Start local replica
 dfx start --background --clean
 
+# Pull and deploy Internet Identity (required on first run)
+dfx deps pull
+dfx deps init
+dfx deps deploy
+
 # Deploy all canisters (this also generates TypeScript bindings)
 dfx deploy
 ```
