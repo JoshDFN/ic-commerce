@@ -285,6 +285,16 @@ Ensure your Stripe webhook secret is correctly configured in Payment Methods set
 2. Verify sender email is authenticated in SendGrid
 3. Check that email settings are enabled in Admin > Settings > Email Settings
 
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Reporting Issues
+
+- **Bug reports**: [Open a bug report](https://github.com/JoshDFN/ic-commerce/issues/new?template=bug_report.md)
+- **Feature requests**: [Request a feature](https://github.com/JoshDFN/ic-commerce/issues/new?template=feature_request.md)
+- **Questions**: [Open a discussion](https://github.com/JoshDFN/ic-commerce/issues)
+
 ## Credits
 
 - **[Solidus](https://github.com/solidusio/solidus)**: This project's data model and admin UX design were inspired by Solidus, an open-source e-commerce platform for Ruby on Rails. The implementation is entirely new, written in Rust for the Internet Computer.
