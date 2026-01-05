@@ -38,47 +38,7 @@ A full-featured, decentralized e-commerce platform built on the Internet Compute
 
 ## Quick Start
 
-### Option 1: Docker (Recommended)
-
-No local dependencies needed - just Docker!
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd ic-commerce
-
-# Build and start everything
-docker compose up --build
-```
-
-Wait for the build to complete (first run takes ~10-15 minutes to install Rust toolchain). You'll see:
-```
-============================================
-  IC Commerce is running!
-============================================
-
-  Storefront:  http://<canister-id>.localhost:4943
-  Admin:       http://<canister-id>.localhost:4943/admin
-
-  Dev Server:  http://localhost:5173
-============================================
-```
-
-**What's included in the Docker image:**
-- Node.js 22
-- Rust with wasm32-wasip1 target
-- wasi2ic
-- dfx (DFINITY SDK)
-
-**Hot reload**: Edit files in `src/` and changes reflect immediately.
-
-**Stop**: Press `Ctrl+C` or run `docker compose down`
-
-**Clean restart**: `docker compose down -v && docker compose up --build`
-
----
-
-### Option 2: Local Installation
+### Option 1: Local Installation (Recommended)
 
 #### Prerequisites
 
@@ -124,6 +84,38 @@ dfx deploy backend
 # Deploy frontend (auto-runs setup-env.sh to add VITE_ variables)
 dfx deploy frontend
 ```
+
+---
+
+### Option 2: Docker (Quick Testing)
+
+> **Note**: Docker is for quick testing without installing dependencies. Data is ephemeral - all canister state is lost when the container stops. For development work, use Option 1.
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd ic-commerce
+
+# Build and start everything
+docker compose up --build
+```
+
+Wait for the build to complete (first run takes ~10-15 minutes to install Rust toolchain). You'll see:
+```
+============================================
+  IC Commerce is running!
+============================================
+
+  Storefront:  http://<canister-id>.localhost:4943
+  Admin:       http://<canister-id>.localhost:4943/admin
+
+  Dev Server:  http://localhost:5173
+============================================
+```
+
+**Hot reload**: Edit files in `src/` and changes reflect immediately.
+
+**Stop**: Press `Ctrl+C` or run `docker compose down`
 
 ### Access the App
 
@@ -214,6 +206,8 @@ dfx generate
 
 ## Mainnet Deployment
 
+> **Note**: Docker is for **development/testing only**. Data is ephemeral and lost when containers stop. For production with persistent data, deploy to IC mainnet.
+
 ### Prerequisites
 
 1. **Cycles**: You need ICP tokens converted to cycles. Deployment costs approximately 1-2T cycles.
@@ -223,20 +217,36 @@ dfx generate
    dfx identity use my-mainnet-identity
    ```
 
-### Deploy to Mainnet
+### Option A: Deploy with dfx (Recommended)
 
 ```bash
-# Create canisters on mainnet (one-time)
+# Create canisters on mainnet (first time only)
 dfx canister create --network ic --all
 
 # Deploy backend first
 dfx deploy backend --network ic
 
-# Deploy frontend (auto-runs setup-env.sh)
+# Deploy frontend
 dfx deploy frontend --network ic
 
 # Check cycles balance
 dfx cycles balance --network ic
+```
+
+### Option B: Deploy from Docker Build Artifacts (CI/CD)
+
+Build artifacts in Docker, then deploy them:
+
+```bash
+# Build artifacts
+docker build -f Dockerfile.prod -t ic-commerce-build .
+docker run --rm -v $(pwd)/build-output:/output ic-commerce-build
+
+# Deploy backend WASM
+dfx canister install backend --network ic --mode install --wasm build-output/backend_ic.wasm
+
+# Deploy frontend
+dfx deploy frontend --network ic
 ```
 
 ### After Deployment
