@@ -57,7 +57,24 @@ export async function logout(): Promise<void> {
 
 export async function isAuthenticated(): Promise<boolean> {
   const client = await initAuth();
-  return client.isAuthenticated();
+  const authenticated = await client.isAuthenticated();
+
+  if (authenticated && DFX_NETWORK === 'local') {
+    // For local development, check if this is a stale session from a previous replica
+    // by comparing the stored backend canister ID with the current one
+    const storedBackendId = localStorage.getItem('ic-commerce-backend-id');
+    if (storedBackendId && storedBackendId !== BACKEND_CANISTER_ID) {
+      // Canister ID changed - replica was restarted, clear stale auth
+      console.log('Detected replica restart (canister ID changed), clearing stale auth');
+      await clearAuthCache();
+      localStorage.setItem('ic-commerce-backend-id', BACKEND_CANISTER_ID);
+      return false;
+    }
+    // Store current backend ID for future comparison
+    localStorage.setItem('ic-commerce-backend-id', BACKEND_CANISTER_ID);
+  }
+
+  return authenticated;
 }
 
 /**
@@ -74,6 +91,8 @@ export async function clearAuthCache(): Promise<void> {
   agent = null;
   backend = null;
   authClient = null;
+  // Clear stored backend ID so next login stores fresh value
+  localStorage.removeItem('ic-commerce-backend-id');
 }
 
 export async function getAgent(): Promise<HttpAgent> {
