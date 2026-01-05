@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { initAuth, login as iiLogin, logout as iiLogout, isAuthenticated, getBackend } from '../lib/backend';
+import { initAuth, login as iiLogin, logout as iiLogout, isAuthenticated, getBackend, clearAuthCache } from '../lib/backend';
 
 type UserRole = 'Admin' | 'Customer' | 'Guest';
 
@@ -43,6 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             principal: auth.principal,
           });
         } else {
+          // Backend rejected auth - might be stale identity from previous deployment
+          // Clear cached auth and reset state
+          await clearAuthCache();
           setState({
             isLoading: false,
             isLoggedIn: false,
@@ -59,6 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch {
+      // Network error or stale auth - clear cache to allow fresh login
+      await clearAuthCache();
       setState({
         isLoading: false,
         isLoggedIn: false,

@@ -60,6 +60,22 @@ export async function isAuthenticated(): Promise<boolean> {
   return client.isAuthenticated();
 }
 
+/**
+ * Clear cached auth state - useful when II state becomes stale
+ * (e.g., after dfx start --clean wipes local II anchors)
+ */
+export async function clearAuthCache(): Promise<void> {
+  try {
+    const client = await initAuth();
+    await client.logout();
+  } catch {
+    // Ignore errors during cleanup
+  }
+  agent = null;
+  backend = null;
+  authClient = null;
+}
+
 export async function getAgent(): Promise<HttpAgent> {
   if (agent) return agent;
 

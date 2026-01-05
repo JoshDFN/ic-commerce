@@ -271,6 +271,12 @@ dfx deploy backend
 dfx deploy frontend
 ```
 
+### Login fails after clean restart
+After `dfx start --clean`, your browser may have cached Internet Identity credentials for anchors that no longer exist. The app should automatically clear stale auth, but if you still have issues:
+1. Clear your browser's site data for `localhost:4943`
+2. Or open DevTools → Application → Storage → Clear site data
+3. Refresh and try logging in again
+
 ### "Canister ID is required" error
 This means the Vite environment variables are missing. Redeploy the frontend:
 ```bash
