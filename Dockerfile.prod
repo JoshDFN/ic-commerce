@@ -97,4 +97,4 @@ COPY dfx.json ./
 COPY canister_ids.json* ./
 
 # Default: copy artifacts to /output volume
-CMD ["sh", "-c", "cp -r /artifacts/* /output/ && echo 'Build artifacts copied to /output/' && ls -la /output/"]
+CMD ["sh", "-c", "mkdir -p /output && cp -r /artifacts/* /output/ && echo 'Build artifacts copied to /output/' && ls -la /output/"]
