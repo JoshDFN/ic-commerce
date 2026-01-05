@@ -28,11 +28,13 @@ A full-featured, decentralized e-commerce platform built on the Internet Compute
 
 ## Technology Stack
 
-**Frontend**: React, TypeScript, Vite, Tailwind CSS
+**Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS 4, react-router-dom 7
 
 **Backend**: Rust, ic-sqlite, Candid
 
 **Services**: Stripe (payments), SendGrid (emails), Internet Identity (auth)
+
+**ICP SDK**: @icp-sdk/core 5.0, @icp-sdk/auth 5.0
 
 ## Quick Start
 
