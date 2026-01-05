@@ -91,16 +91,19 @@ dfx deploy frontend
 
 > **Note**: Docker is for quick testing without installing dependencies. Data is ephemeral - all canister state is lost when the container stops. For development work, use Option 1.
 
+**Pre-built image** (fastest):
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd ic-commerce
+docker run -p 4943:4943 -p 5173:5173 joshdfn/ic-commerce
+```
 
-# Build and start everything
+**Or build from source**:
+```bash
+git clone https://github.com/JoshDFN/ic-commerce.git
+cd ic-commerce
 docker compose up --build
 ```
 
-Wait for the build to complete (first run takes ~10-15 minutes to install Rust toolchain). You'll see:
+Wait for startup to complete. You'll see:
 ```
 ============================================
   IC Commerce is running!
