@@ -3,9 +3,10 @@ import { AuthProvider } from './hooks/useAuth';
 import { CartProvider } from './hooks/useCart';
 import { SettingsProvider } from './hooks/useSettings';
 
-// Layout
+// Layout & Error Handling
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Storefront Pages
 import HomePage from './pages/HomePage';
@@ -40,10 +41,11 @@ import AdminEmailTemplates from './pages/admin/EmailTemplates';
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <SettingsProvider>
-          <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <SettingsProvider>
+            <Routes>
             {/* Storefront */}
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
@@ -79,11 +81,12 @@ function App() {
               <Route path="settings/payment-methods" element={<AdminPaymentMethods />} />
               <Route path="settings/shipping-methods" element={<AdminShippingMethods />} />
               <Route path="settings/zones" element={<AdminZones />} />
-            </Route>
-          </Routes>
-        </SettingsProvider>
-      </CartProvider>
-    </AuthProvider>
+              </Route>
+            </Routes>
+          </SettingsProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

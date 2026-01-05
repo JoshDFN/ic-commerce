@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBackend, formatPrice } from '../lib/backend';
 import { useCart } from '../hooks/useCart';
-// import { useAuth } from '../hooks/useAuth';
 
 interface Variant {
   id: bigint;
@@ -39,9 +38,7 @@ interface Product {
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
-  // const { addToCart } = useCart(); // Keep this
   const { addToCart } = useCart();
-  // const { login, isLoggedIn } = useAuth(); // Remove this
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

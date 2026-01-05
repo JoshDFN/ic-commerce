@@ -140,8 +140,8 @@ export default function AdminOrders() {
       if ('Ok' in result) {
         setOrderDetail(result.Ok);
       }
-    } catch (e: any) {
-      console.error('Failed to load order detail:', e);
+    } catch {
+      // Order detail fetch failed
     } finally {
       setLoadingDetail(false);
     }

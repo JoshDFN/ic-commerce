@@ -39,11 +39,9 @@ export default function Layout() {
         setSubscribeStatus('success');
         setNewsletterEmail('');
       } else {
-        console.error('Newsletter Error:', result.Err);
         setSubscribeStatus('error');
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setSubscribeStatus('error');
     }
   };
@@ -58,8 +56,8 @@ export default function Layout() {
         if ('Ok' in result) {
           setTaxonomies(result.Ok);
         }
-      } catch (e) {
-        console.error('Failed to load taxonomies:', e);
+      } catch {
+        // Taxonomies failed to load - navigation will work without categories
       }
     }
     loadTaxonomies();

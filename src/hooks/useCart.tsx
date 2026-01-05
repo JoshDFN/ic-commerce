@@ -1,6 +1,38 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getBackend } from '../lib/backend';
 
+// Session expires after 7 days of inactivity
+const SESSION_EXPIRY_DAYS = 7;
+const SESSION_KEY = 'ic_commerce_session_id';
+const SESSION_TIMESTAMP_KEY = 'ic_commerce_session_timestamp';
+
+function getOrCreateSession(): string {
+  const now = Date.now();
+  const storedTimestamp = localStorage.getItem(SESSION_TIMESTAMP_KEY);
+  const storedSession = localStorage.getItem(SESSION_KEY);
+
+  // Check if session exists and is not expired
+  if (storedSession && storedTimestamp) {
+    const elapsed = now - parseInt(storedTimestamp, 10);
+    const maxAge = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+    if (elapsed < maxAge) {
+      // Refresh timestamp on access
+      localStorage.setItem(SESSION_TIMESTAMP_KEY, now.toString());
+      return storedSession;
+    }
+    // Session expired, remove old data
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_TIMESTAMP_KEY);
+  }
+
+  // Create new session
+  const newSession = crypto.randomUUID();
+  localStorage.setItem(SESSION_KEY, newSession);
+  localStorage.setItem(SESSION_TIMESTAMP_KEY, now.toString());
+  return newSession;
+}
+
 interface LineItem {
   id: bigint;
   variant_id: bigint;
@@ -51,14 +83,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sessionId] = useState(() => {
-    let sid = localStorage.getItem('ic_commerce_session_id');
-    if (!sid) {
-      sid = crypto.randomUUID();
-      localStorage.setItem('ic_commerce_session_id', sid);
-    }
-    return sid;
-  });
+  const [sessionId] = useState(() => getOrCreateSession());
 
   const refreshCart = useCallback(async () => {
     try {
@@ -69,12 +94,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if ('Ok' in result) {
         setCart(result.Ok[0] || null);
       } else {
-        // setError(result.Err); // Don't error if no cart found for guest
+        // Don't error if no cart found for guest
         setCart(null);
       }
-    } catch (e: any) {
-      console.error(e);
-      // setError(e.message || 'Failed to load cart');
+    } catch {
+      // Silently handle cart load failures for guests
+      setCart(null);
     } finally {
       setIsLoading(false);
     }
@@ -95,8 +120,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.Err);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to add to cart';
+      setError(message);
       throw e;
     }
   };
@@ -112,8 +138,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.Err);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to update quantity';
+      setError(message);
       throw e;
     }
   };
@@ -129,8 +156,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.Err);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to remove item';
+      setError(message);
       throw e;
     }
   };
@@ -146,8 +174,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.Err);
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to apply coupon';
+      setError(message);
       throw e;
     }
   };

@@ -93,8 +93,8 @@ export default function AdminOrderDetail() {
       const backend = await getBackend();
       const result = await backend.get_refund_reasons();
       if ('Ok' in result) setRefundReasons(result.Ok);
-    } catch (e) {
-      console.error('Failed to load refund reasons', e);
+    } catch {
+      // Refund reasons load failed - will show empty list
     }
   }
 

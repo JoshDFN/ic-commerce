@@ -22,7 +22,9 @@ static MIGRATIONS: &[ic_sql_migrate::Migration] = ic_sql_migrate::include_migrat
 fn run_migrations() {
     with_connection(|mut conn| {
         let conn: &mut Connection = &mut conn;
-        ic_sql_migrate::sqlite::migrate(conn, MIGRATIONS).unwrap();
+        if let Err(e) = ic_sql_migrate::sqlite::migrate(conn, MIGRATIONS) {
+            ic_cdk::trap(&format!("Migration failed: {:?}", e));
+        }
     });
 }
 
@@ -1030,7 +1032,7 @@ fn add_to_cart(variant_id: i64, quantity: i64, session_id: Option<String>) -> Re
 
         // Get or create cart
         let order_id: i64 = if is_anonymous {
-             let sess_id = session_id.unwrap(); // Verified above
+             let sess_id = session_id.as_ref().ok_or("Session ID missing")?;
              match conn.query_row(
                 "SELECT id FROM orders WHERE guest_token = ?1 AND state = 'cart'",
                 (&sess_id,),
@@ -1154,7 +1156,7 @@ fn update_line_item(line_item_id: i64, quantity: i64, session_id: Option<String>
 
         // Check permissions
         if is_anonymous {
-             let sess_id = session_id.as_ref().unwrap();
+             let sess_id = session_id.as_ref().ok_or("Session ID required")?;
              if order_guest_token.as_ref() != Some(sess_id) {
                  return Err("Unauthorized".to_string());
              }
@@ -1227,7 +1229,7 @@ fn apply_coupon(input: ApplyCouponInput, session_id: Option<String>) -> Result<O
 
         // Get active cart
         let order_id: i64 = if is_anonymous {
-            let sess_id = session_id.unwrap();
+            let sess_id = session_id.as_ref().ok_or("Session ID required")?;
             conn.query_row(
                 "SELECT id FROM orders WHERE guest_token = ?1 AND state = 'cart'",
                 (&sess_id,),
@@ -1899,39 +1901,103 @@ fn admin_get_stock_items(params: StockQueryParams) -> Result<StockListResponse, 
             0 // not used when not filtering
         };
 
-        // Find stock items for a location or all
-        let mut query = r#"SELECT si.id, v.id, v.sku, p.name, si.count_on_hand, si.backorderable
+        // Find stock items for a location or all (using parameterized queries)
+        let base_query = r#"SELECT si.id, v.id, v.sku, p.name, si.count_on_hand, si.backorderable
                            FROM stock_items si
                            JOIN variants v ON v.id = si.variant_id
-                           JOIN products p ON p.id = v.product_id"#.to_string();
+                           JOIN products p ON p.id = v.product_id
+                           WHERE si.deleted_at IS NULL"#;
 
-        let mut where_clause = " WHERE si.deleted_at IS NULL".to_string();
-        if let Some(loc_id) = params.stock_location_id {
-            where_clause.push_str(&format!(" AND si.stock_location_id = {}", loc_id));
-        }
-        if params.low_stock.unwrap_or(false) {
-            where_clause.push_str(&format!(" AND si.count_on_hand <= {}", threshold));
-        }
-
-        query.push_str(&where_clause);
-        query.push_str(&format!(" ORDER BY si.count_on_hand ASC LIMIT {} OFFSET {}", limit, offset));
-
-        let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
-        let items = stmt.query_map([], |row| {
-            Ok(StockItem {
-                id: row.get(0)?,
-                stock_location_id: params.stock_location_id.unwrap_or(1),
-                stock_location_name: "Default".to_string(), // Need to join to get real name
-                variant_id: row.get(1)?,
-                variant_sku: row.get(2)?,
-                product_name: row.get(3)?,
-                count_on_hand: row.get(4)?,
-                backorderable: row.get::<_, i64>(5)? == 1,
-            })
-        }).map_err(|e| e.to_string())?
-        .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
-
-        let total_count: i64 = conn.query_row(&format!("SELECT COUNT(*) FROM stock_items si {}", where_clause), [], |row| row.get(0)).unwrap_or(0);
+        let (items, total_count): (Vec<StockItem>, i64) = match (params.stock_location_id, params.low_stock.unwrap_or(false)) {
+            (Some(loc_id), true) => {
+                let query = format!("{} AND si.stock_location_id = ?1 AND si.count_on_hand <= ?2 ORDER BY si.count_on_hand ASC LIMIT ?3 OFFSET ?4", base_query);
+                let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+                let items = stmt.query_map((loc_id, threshold, limit, offset), |row| {
+                    Ok(StockItem {
+                        id: row.get(0)?,
+                        stock_location_id: loc_id,
+                        stock_location_name: "Default".to_string(),
+                        variant_id: row.get(1)?,
+                        variant_sku: row.get(2)?,
+                        product_name: row.get(3)?,
+                        count_on_hand: row.get(4)?,
+                        backorderable: row.get::<_, i64>(5)? == 1,
+                    })
+                }).map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+                let count: i64 = conn.query_row(
+                    "SELECT COUNT(*) FROM stock_items si WHERE si.deleted_at IS NULL AND si.stock_location_id = ?1 AND si.count_on_hand <= ?2",
+                    (loc_id, threshold), |row| row.get(0)
+                ).unwrap_or(0);
+                (items, count)
+            },
+            (Some(loc_id), false) => {
+                let query = format!("{} AND si.stock_location_id = ?1 ORDER BY si.count_on_hand ASC LIMIT ?2 OFFSET ?3", base_query);
+                let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+                let items = stmt.query_map((loc_id, limit, offset), |row| {
+                    Ok(StockItem {
+                        id: row.get(0)?,
+                        stock_location_id: loc_id,
+                        stock_location_name: "Default".to_string(),
+                        variant_id: row.get(1)?,
+                        variant_sku: row.get(2)?,
+                        product_name: row.get(3)?,
+                        count_on_hand: row.get(4)?,
+                        backorderable: row.get::<_, i64>(5)? == 1,
+                    })
+                }).map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+                let count: i64 = conn.query_row(
+                    "SELECT COUNT(*) FROM stock_items si WHERE si.deleted_at IS NULL AND si.stock_location_id = ?1",
+                    (loc_id,), |row| row.get(0)
+                ).unwrap_or(0);
+                (items, count)
+            },
+            (None, true) => {
+                let query = format!("{} AND si.count_on_hand <= ?1 ORDER BY si.count_on_hand ASC LIMIT ?2 OFFSET ?3", base_query);
+                let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+                let items = stmt.query_map((threshold, limit, offset), |row| {
+                    Ok(StockItem {
+                        id: row.get(0)?,
+                        stock_location_id: params.stock_location_id.unwrap_or(1),
+                        stock_location_name: "Default".to_string(),
+                        variant_id: row.get(1)?,
+                        variant_sku: row.get(2)?,
+                        product_name: row.get(3)?,
+                        count_on_hand: row.get(4)?,
+                        backorderable: row.get::<_, i64>(5)? == 1,
+                    })
+                }).map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+                let count: i64 = conn.query_row(
+                    "SELECT COUNT(*) FROM stock_items si WHERE si.deleted_at IS NULL AND si.count_on_hand <= ?1",
+                    (threshold,), |row| row.get(0)
+                ).unwrap_or(0);
+                (items, count)
+            },
+            (None, false) => {
+                let query = format!("{} ORDER BY si.count_on_hand ASC LIMIT ?1 OFFSET ?2", base_query);
+                let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+                let items = stmt.query_map((limit, offset), |row| {
+                    Ok(StockItem {
+                        id: row.get(0)?,
+                        stock_location_id: params.stock_location_id.unwrap_or(1),
+                        stock_location_name: "Default".to_string(),
+                        variant_id: row.get(1)?,
+                        variant_sku: row.get(2)?,
+                        product_name: row.get(3)?,
+                        count_on_hand: row.get(4)?,
+                        backorderable: row.get::<_, i64>(5)? == 1,
+                    })
+                }).map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+                let count: i64 = conn.query_row(
+                    "SELECT COUNT(*) FROM stock_items si WHERE si.deleted_at IS NULL",
+                    [], |row| row.get(0)
+                ).unwrap_or(0);
+                (items, count)
+            },
+        };
 
         Ok(StockListResponse {
             items,

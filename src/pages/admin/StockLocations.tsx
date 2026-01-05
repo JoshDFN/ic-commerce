@@ -98,8 +98,8 @@ export default function AdminStockLocations() {
       if ('Ok' in result) {
         setStockItems(result.Ok.items);
       }
-    } catch (e: any) {
-      console.error(e);
+    } catch {
+      // Stock items load failed
     }
   }
 

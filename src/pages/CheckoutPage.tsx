@@ -5,6 +5,66 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { getBackend, formatPrice } from '../lib/backend';
 import { useCart } from '../hooks/useCart';
 
+// Validation helpers
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
+
+interface ValidationErrors {
+  name?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  zip?: string;
+}
+
+function validateCheckoutForm(fields: {
+  name: string;
+  email: string;
+  address: string;
+  city: string;
+  zip: string;
+}): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  if (!fields.name.trim()) {
+    errors.name = 'Name is required';
+  } else if (fields.name.trim().length < 2) {
+    errors.name = 'Name must be at least 2 characters';
+  }
+
+  if (!fields.email.trim()) {
+    errors.email = 'Email is required';
+  } else if (!EMAIL_REGEX.test(fields.email)) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  if (!fields.address.trim()) {
+    errors.address = 'Address is required';
+  } else if (fields.address.trim().length < 5) {
+    errors.address = 'Please enter a complete address';
+  }
+
+  if (!fields.city.trim()) {
+    errors.city = 'City is required';
+  }
+
+  if (!fields.zip.trim()) {
+    errors.zip = 'ZIP code is required';
+  } else if (!ZIP_REGEX.test(fields.zip.trim())) {
+    errors.zip = 'Please enter a valid ZIP code (e.g., 10001 or 10001-1234)';
+  }
+
+  return errors;
+}
+
+interface PaymentMethod {
+  id: bigint;
+  name: string;
+  method_type: string;
+  active: boolean;
+  publishable_key: string[];
+}
+
 // Lazy load Stripe
 let stripePromise: Promise<Stripe | null> | null = null;
 
@@ -43,7 +103,9 @@ export default function CheckoutPage() {
         // Get publishable key from payment methods
         const pmResult = await backend.get_payment_methods();
         if ('Ok' in pmResult) {
-          const stripeMethod = pmResult.Ok.find((m: any) => m.method_type === 'stripe' && m.active);
+          const stripeMethod = (pmResult.Ok as PaymentMethod[]).find(
+            (m) => m.method_type === 'stripe' && m.active
+          );
           // publishable_key is opt text, so it comes as [] or [string]
           const pubKey = stripeMethod?.publishable_key?.[0];
           if (pubKey) {
@@ -62,9 +124,9 @@ export default function CheckoutPage() {
         } else {
           setError('Failed to initialize payment: ' + result.Err);
         }
-      } catch (e: any) {
-        console.error('Payment init error:', e);
-        setError('Failed to initialize payment: ' + e.message);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        setError('Failed to initialize payment: ' + message);
       }
     }
 
@@ -162,8 +224,27 @@ export default function CheckoutPage() {
   );
 }
 
+interface CartLineItem {
+  id: bigint;
+  variant_id: bigint;
+  quantity: bigint;
+  price: bigint;
+  currency: string;
+  product_name: string;
+  product_slug: string;
+  image_url: string | null;
+}
+
+interface CartData {
+  id: bigint;
+  number: string;
+  state: string;
+  item_total: bigint;
+  line_items: CartLineItem[];
+}
+
 interface CheckoutFormProps {
-  cart: any;
+  cart: CartData;
   total: number;
   onSuccess: () => void;
 }
@@ -174,6 +255,7 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
 
   // Form fields
   const [name, setName] = useState('');
@@ -190,11 +272,15 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
       return;
     }
 
-    if (!name || !email || !address || !city || !zip) {
-      setError('Please fill in all required fields');
+    // Validate form fields
+    const errors = validateCheckoutForm({ name, email, address, city, zip });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('Please correct the errors below');
       return;
     }
 
+    setFieldErrors({});
     setLoading(true);
     setError(null);
 
@@ -259,9 +345,8 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
 
           // Complete checkout
           await backend.complete_checkout(sessionId ? [sessionId] : []);
-        } catch (err) {
-          console.error('Failed to complete order:', err);
-          // Payment succeeded even if order completion had issues
+        } catch {
+          // Payment succeeded even if order completion had issues - user will see confirmation
         }
 
         onSuccess();
@@ -274,9 +359,9 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
           },
         });
       }
-    } catch (e: any) {
-      console.error('Payment error:', e);
-      setError(e.message || 'Payment failed');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Payment failed';
+      setError(message);
     }
 
     setLoading(false);
@@ -292,23 +377,25 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
             <input
               type="text"
-              className="input"
+              className={`input ${fieldErrors.name ? 'border-red-500' : ''}`}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
               required
             />
+            {fieldErrors.name && <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
             <input
               type="email"
-              className="input"
+              className={`input ${fieldErrors.email ? 'border-red-500' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="john@example.com"
               required
             />
+            {fieldErrors.email && <p className="text-red-500 text-sm mt-1">{fieldErrors.email}</p>}
           </div>
         </div>
       </div>
@@ -321,24 +408,26 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
             <input
               type="text"
-              className="input"
+              className={`input ${fieldErrors.address ? 'border-red-500' : ''}`}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="123 Main St"
               required
             />
+            {fieldErrors.address && <p className="text-red-500 text-sm mt-1">{fieldErrors.address}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
               <input
                 type="text"
-                className="input"
+                className={`input ${fieldErrors.city ? 'border-red-500' : ''}`}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="New York"
                 required
               />
+              {fieldErrors.city && <p className="text-red-500 text-sm mt-1">{fieldErrors.city}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
@@ -355,12 +444,13 @@ function CheckoutForm({ cart, total, onSuccess }: CheckoutFormProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
             <input
               type="text"
-              className="input"
+              className={`input ${fieldErrors.zip ? 'border-red-500' : ''}`}
               value={zip}
               onChange={(e) => setZip(e.target.value)}
               placeholder="10001"
               required
             />
+            {fieldErrors.zip && <p className="text-red-500 text-sm mt-1">{fieldErrors.zip}</p>}
           </div>
         </div>
       </div>

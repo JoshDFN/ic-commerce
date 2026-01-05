@@ -35,8 +35,8 @@ export default function AccountPage() {
       if ('Ok' in result) {
         setOrders(result.Ok);
       }
-    } catch (e: any) {
-      console.error('Failed to load orders:', e);
+    } catch {
+      // Silently fail - user will see empty orders
     } finally {
       setIsLoading(false);
     }

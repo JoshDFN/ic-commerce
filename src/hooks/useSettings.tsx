@@ -38,8 +38,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 });
                 setSettings(settingsMap);
             }
-        } catch (error) {
-            console.error('Failed to fetch settings:', error);
+        } catch {
+            // Settings fetch failed - will use empty defaults
         } finally {
             setLoading(false);
         }

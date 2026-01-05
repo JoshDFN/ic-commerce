@@ -29,12 +29,11 @@ export default function AdminEmailSettings() {
             const result = await backend.get_email_settings();
             if ('Ok' in result) {
                 setSettings(result.Ok);
-            } else {
-                // If error (e.g. not initialized), keep defaults
-                console.error(result.Err);
             }
-        } catch (e: any) {
-            setError(e.message);
+            // If error (e.g. not initialized), keep defaults
+        } catch (e) {
+            const message = e instanceof Error ? e.message : 'Failed to load settings';
+            setError(message);
         } finally {
             setIsLoading(false);
         }

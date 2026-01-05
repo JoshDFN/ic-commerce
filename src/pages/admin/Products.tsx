@@ -178,8 +178,8 @@ export default function AdminProducts() {
           })),
         }));
       }
-    } catch (e) {
-      console.error("Failed to fetch product details", e);
+    } catch {
+      // Product details fetch failed - form will show empty
     } finally {
       setFetchingDetails(false);
     }

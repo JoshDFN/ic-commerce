@@ -58,8 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           principal: null,
         });
       }
-    } catch (error) {
-      console.error('Auth error:', error);
+    } catch {
       setState({
         isLoading: false,
         isLoggedIn: false,

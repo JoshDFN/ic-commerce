@@ -18,7 +18,9 @@ import { idlFactory } from '../declarations/backend/backend.did.js';
 // import type { _SERVICE } from '../declarations/backend/backend.did.d';
 
 let agent: HttpAgent | null = null;
-let backend: any = null;
+// TODO: Use generated _SERVICE type when Candid optional patterns are standardized across codebase
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let backend: ReturnType<typeof Actor.createActor> | null = null;
 let authClient: AuthClient | null = null;
 
 export async function initAuth(): Promise<AuthClient> {
@@ -76,6 +78,7 @@ export async function getAgent(): Promise<HttpAgent> {
   return agent;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getBackend(): Promise<any> {
   if (backend) return backend;
 
