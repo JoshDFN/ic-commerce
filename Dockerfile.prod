@@ -1,0 +1,133 @@
+# IC Commerce Production Build
+# Multi-stage Dockerfile with prebuilt components
+
+# =============================================================================
+# Stage 1: Rust Builder - Compile backend WASM
+# =============================================================================
+FROM ubuntu:22.04 AS rust-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash builder
+USER builder
+WORKDIR /home/builder
+
+# Install Rust via rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/home/builder/.cargo/bin:${PATH}"
+
+# Add WebAssembly target
+RUN rustup target add wasm32-wasip1
+
+# Install wasi2ic
+RUN cargo install wasi2ic
+
+WORKDIR /build
+
+# Copy Cargo files first for dependency caching
+COPY --chown=builder:builder Cargo.toml Cargo.lock ./
+COPY --chown=builder:builder .cargo .cargo
+COPY --chown=builder:builder src/backend/Cargo.toml src/backend/
+
+# Create dummy lib.rs to build dependencies
+RUN mkdir -p src/backend/src && echo "fn main() {}" > src/backend/src/lib.rs
+RUN cargo build --release --target wasm32-wasip1 -p backend || true
+
+# Copy actual source and rebuild
+COPY --chown=builder:builder src/backend src/backend
+RUN cargo build --release --target wasm32-wasip1 -p backend
+
+# Convert to IC WASM
+RUN wasi2ic target/wasm32-wasip1/release/backend.wasm target/wasm32-wasip1/release/backend_ic.wasm
+
+# =============================================================================
+# Stage 2: Frontend Builder - Install npm dependencies
+# =============================================================================
+FROM node:22-slim AS frontend-builder
+
+WORKDIR /build
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --include=dev
+
+# Copy frontend source and config files
+COPY src src
+COPY public public
+COPY index.html tsconfig.json tsconfig.node.json vite.config.ts ./
+COPY tailwind.config.js postcss.config.js ./
+
+# =============================================================================
+# Stage 3: Runtime - dfx with prebuilt artifacts
+# =============================================================================
+FROM ubuntu:22.04 AS runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    socat \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 22 (needed for Vite build at deploy time)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash developer
+USER developer
+WORKDIR /home/developer
+
+# Install dfx
+RUN DFXVM_INIT_YES=1 sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
+ENV PATH="/home/developer/.local/share/dfx/bin:${PATH}"
+
+# Set working directory for the app
+WORKDIR /app
+
+# Copy project configuration (use production dfx.json without build commands)
+COPY --chown=developer:developer dfx.prod.json dfx.json
+COPY --chown=developer:developer package*.json ./
+COPY --chown=developer:developer src/backend/backend.did src/backend/
+
+# Copy prebuilt backend WASM from rust-builder
+COPY --from=rust-builder --chown=developer:developer \
+    /build/target/wasm32-wasip1/release/backend_ic.wasm \
+    target/wasm32-wasip1/release/
+
+# Copy node_modules and frontend source from frontend-builder
+COPY --from=frontend-builder --chown=developer:developer /build/node_modules ./node_modules
+COPY --from=frontend-builder --chown=developer:developer /build/src ./src
+COPY --from=frontend-builder --chown=developer:developer /build/public ./public
+COPY --from=frontend-builder --chown=developer:developer /build/index.html /build/vite.config.ts ./
+COPY --from=frontend-builder --chown=developer:developer /build/tsconfig.json /build/tsconfig.node.json ./
+COPY --from=frontend-builder --chown=developer:developer /build/tailwind.config.js /build/postcss.config.js ./
+
+# Copy scripts
+COPY --chown=developer:developer scripts scripts/
+RUN chmod +x scripts/*.sh
+
+# Copy production entrypoint
+COPY --chown=developer:developer scripts/docker-entrypoint.prod.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.prod.sh
+
+# Expose port for dfx replica (canister access)
+EXPOSE 4943
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.prod.sh"]

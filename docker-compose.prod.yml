@@ -1,0 +1,12 @@
+services:
+  ic-commerce:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      # DFX replica - access canisters at http://localhost:4943
+      - "4943:4943"
+    environment:
+      - VITE_DFX_NETWORK=local
+    stdin_open: true
+    tty: true

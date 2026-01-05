@@ -1,0 +1,20 @@
+{
+  "canisters": {
+    "internet_identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    },
+    "backend": {
+      "type": "custom",
+      "candid": "src/backend/backend.did",
+      "wasm": "target/wasm32-wasip1/release/backend_ic.wasm"
+    },
+    "frontend": {
+      "type": "assets",
+      "source": ["dist"],
+      "build": "./scripts/setup-env.sh && npm run build"
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
