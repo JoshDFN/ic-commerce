@@ -1,0 +1,100 @@
+# IC Commerce Production Build
+# Multi-stage build that outputs frontend dist/ and backend .wasm for IC deployment
+#
+# Usage:
+#   docker build -f Dockerfile.prod -t ic-commerce-build .
+#   docker run --rm -v $(pwd)/build-output:/output ic-commerce-build
+#
+# Outputs to /output:
+#   - dist/                    Frontend assets (upload to frontend canister)
+#   - backend_ic.wasm          Backend WASM (deploy to backend canister)
+
+# =============================================================================
+# Stage 1: Build frontend
+# =============================================================================
+FROM node:22-slim AS frontend-builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source files needed for build
+COPY src/ ./src/
+COPY public/ ./public/
+COPY index.html ./
+COPY vite.config.ts ./
+COPY tsconfig*.json ./
+COPY postcss.config.js ./
+
+# Build frontend with production env vars (placeholder canister IDs for now)
+# These get replaced at deploy time or via dfx deploy
+ENV VITE_DFX_NETWORK=ic
+ENV VITE_CANISTER_ID_BACKEND=placeholder
+ENV VITE_CANISTER_ID_INTERNET_IDENTITY=rdmx6-jaaaa-aaaaa-aaadq-cai
+
+RUN npm run build
+
+# =============================================================================
+# Stage 2: Build backend WASM
+# =============================================================================
+FROM rust:1.85-slim AS backend-builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install nightly toolchain (required for stable-fs let chains feature)
+RUN rustup toolchain install nightly && \
+    rustup default nightly && \
+    rustup target add wasm32-wasip1
+
+# Install wasi2ic
+RUN cargo install wasi2ic
+
+WORKDIR /app
+
+# Copy Cargo files first for better caching
+COPY src/backend/Cargo.toml ./src/backend/
+COPY Cargo.toml Cargo.lock ./
+
+# Create dummy main to cache dependencies
+RUN mkdir -p src/backend/src && \
+    echo "fn main() {}" > src/backend/src/lib.rs && \
+    cargo build --release --target wasm32-wasip1 -p backend 2>/dev/null || true
+
+# Copy actual source
+COPY src/backend/ ./src/backend/
+
+# Build backend
+RUN cargo build --release --target wasm32-wasip1 -p backend
+
+# Convert to IC-compatible WASM
+RUN wasi2ic target/wasm32-wasip1/release/backend.wasm target/wasm32-wasip1/release/backend_ic.wasm
+
+# =============================================================================
+# Stage 3: Output artifacts
+# =============================================================================
+FROM alpine:latest AS output
+
+WORKDIR /artifacts
+
+# Copy frontend build
+COPY --from=frontend-builder /app/dist ./dist/
+
+# Copy backend WASM
+COPY --from=backend-builder /app/target/wasm32-wasip1/release/backend_ic.wasm ./
+
+# Copy deployment helpers
+COPY dfx.json ./
+COPY canister_ids.json* ./
+
+# Default: copy artifacts to /output volume
+CMD ["sh", "-c", "cp -r /artifacts/* /output/ && echo 'Build artifacts copied to /output/' && ls -la /output/"]
