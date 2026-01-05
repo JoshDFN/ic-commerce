@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBackend, formatPrice, formatDate } from '../../lib/backend';
+import { useToast } from '../../components/Toast';
 
 interface Order {
   id: bigint;
@@ -44,6 +45,7 @@ export default function AdminOrders() {
   const [expandedOrderId, setExpandedOrderId] = useState<bigint | null>(null);
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     loadOrders();
@@ -95,11 +97,12 @@ export default function AdminOrders() {
 
       if ('Ok' in result) {
         loadOrders();
+        showToast('Order marked as shipped', 'success');
       } else {
-        alert('Failed: ' + result.Err);
+        showToast('Failed: ' + result.Err, 'error');
       }
     } catch (e: any) {
-      alert('Error: ' + e.message);
+      showToast('Error: ' + e.message, 'error');
     }
   };
 
@@ -115,11 +118,12 @@ export default function AdminOrders() {
 
       if ('Ok' in result) {
         loadOrders();
+        showToast('Tracking number updated', 'success');
       } else {
-        alert('Failed: ' + result.Err);
+        showToast('Failed: ' + result.Err, 'error');
       }
     } catch (e: any) {
-      alert('Error: ' + e.message);
+      showToast('Error: ' + e.message, 'error');
     }
   };
 

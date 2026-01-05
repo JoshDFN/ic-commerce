@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSettings, StoreSetting } from '../../hooks/useSettings';
+import { useToast } from '../../components/Toast';
 
 export default function AdminContent() {
     const { settings, loading, updateSettings } = useSettings();
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
+    const { showToast } = useToast();
 
     useEffect(() => {
         if (settings) {
@@ -22,9 +24,9 @@ export default function AdminContent() {
         try {
             const updates: StoreSetting[] = Object.entries(formData).map(([key, value]) => ({ key, value }));
             await updateSettings(updates);
-            alert('Content updated successfully');
+            showToast('Content updated successfully', 'success');
         } catch (err: any) {
-            alert('Failed to update content: ' + err.message);
+            showToast('Failed to update content: ' + err.message, 'error');
         } finally {
             setSaving(false);
         }

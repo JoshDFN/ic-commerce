@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { CartProvider } from './hooks/useCart';
 import { SettingsProvider } from './hooks/useSettings';
+import { ToastProvider } from './components/Toast';
 
 // Layout & Error Handling
 import Layout from './components/Layout';
@@ -45,6 +46,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <SettingsProvider>
+            <ToastProvider>
             <Routes>
             {/* Storefront */}
             <Route path="/" element={<Layout />}>
@@ -83,6 +85,7 @@ function App() {
               <Route path="settings/zones" element={<AdminZones />} />
               </Route>
             </Routes>
+            </ToastProvider>
           </SettingsProvider>
         </CartProvider>
       </AuthProvider>

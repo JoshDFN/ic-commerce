@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBackend, formatPrice } from '../../lib/backend';
+import { useToast } from '../../components/Toast';
 
 interface OptionType {
     id: bigint;
@@ -32,6 +33,7 @@ export default function PowerProductVariants() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState(0);
+    const { showToast } = useToast();
 
     // Variant Form
     const [sku, setSku] = useState('');
@@ -114,8 +116,9 @@ export default function PowerProductVariants() {
             setNewOptionName('');
             setNewOptionPres('');
             setRefreshKey(k => k + 1);
+            showToast('Option type created', 'success');
         } catch (e: any) {
-            alert(e.message);
+            showToast(e.message, 'error');
         }
     }
 
@@ -155,12 +158,13 @@ export default function PowerProductVariants() {
             if ('Ok' in res) {
                 setRefreshKey(k => k + 1);
                 setSku('');
+                showToast('Variant created', 'success');
             } else {
-                alert(res.Err);
+                showToast(res.Err, 'error');
             }
 
         } catch (e: any) {
-            alert(e.message);
+            showToast(e.message, 'error');
         }
     }
 

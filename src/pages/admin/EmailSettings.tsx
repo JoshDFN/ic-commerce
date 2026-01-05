@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBackend } from '../../lib/backend';
+import { useToast } from '../../components/Toast';
 
 interface EmailSettings {
     provider: string;
@@ -18,6 +19,7 @@ export default function AdminEmailSettings() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { showToast } = useToast();
 
     useEffect(() => {
         loadSettings();
@@ -53,7 +55,7 @@ export default function AdminEmailSettings() {
                 return;
             }
 
-            alert('Email settings updated successfully');
+            showToast('Email settings updated successfully', 'success');
         } catch (e: any) {
             setError(e.message);
         } finally {
