@@ -1,98 +1,187 @@
 /* Import Inter font - same as Solidus Admin */
 @import url("https://rsms.me/inter/inter.css");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Tailwind 4: Custom theme via @theme */
+@theme {
+  /* Fonts */
+  --font-sans: "Inter var", ui-sans-serif, system-ui, sans-serif;
+
+  /* Primary palette */
+  --color-solidus-red: #ef3023;
+  --color-black: #222222;
+  --color-graphite: #c7ccc7;
+  --color-graphite-light: #d8dad8;
+  --color-sand: #f5f3f0;
+  --color-white: #ffffff;
+
+  /* Secondary palette */
+  --color-yellow: #fdc071;
+  --color-orange: #f68050;
+  --color-blue: #2554b1;
+  --color-moss: #2d3925;
+  --color-forest: #096756;
+  --color-midnight: #163449;
+  --color-pink: #f6d7e2;
+  --color-plum: #3a0e31;
+  --color-sky: #cbdff1;
+  --color-seafoam: #c1e0de;
+  --color-dune: #e6bf9b;
+  --color-full-black: #000000;
+
+  /* Extra colors */
+  --color-papaya-whip: #f9e3d9;
+  --color-sazerac: #fcf0dd;
+
+  /* UI Red scale */
+  --color-red-100: #f8d6d3;
+  --color-red-200: #f1ada7;
+  --color-red-300: #ea8980;
+  --color-red-400: #e36054;
+  --color-red-500: #dc3728;
+  --color-red-600: #b12c20;
+  --color-red-700: #862219;
+  --color-red-800: #561610;
+  --color-red-900: #2b0b08;
+
+  /* Grayscale */
+  --color-gray-15: #fafafa;
+  --color-gray-25: #f5f5f5;
+  --color-gray-50: #f0f0f0;
+  --color-gray-100: #dedede;
+  --color-gray-200: #cfcfcf;
+  --color-gray-300: #bababa;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #616161;
+  --color-gray-700: #4a4a4a;
+  --color-gray-800: #333333;
+  --color-gray-900: #1a1a1a;
+
+  /* Border radius */
+  --radius-sm: 4px;
+
+  /* Box shadows */
+  --shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.04);
+  --shadow-base: 0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 2px 4px -1px rgba(0, 0, 0, 0.04);
+
+  /* Custom spacing */
+  --spacing-5_5: 1.375rem;
+}
 
 /* Base styles matching Solidus */
 body {
-  @apply bg-sand text-black antialiased;
+  background-color: var(--color-sand);
+  color: var(--color-black);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
+/* Tailwind 4: Use @utility for custom utilities that can be used with @apply */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-gray-400);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@utility card {
+  background-color: var(--color-white);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-100);
+}
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* Custom component classes - Solidus style */
-@layer components {
-  /* Buttons */
-  .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
-  }
+.btn-primary {
+  @apply btn bg-solidus-red text-white hover:bg-red-600;
+}
 
-  .btn-primary {
-    @apply btn bg-solidus-red text-white hover:bg-red-600 focus:ring-red-500;
-  }
+.btn-secondary {
+  @apply btn bg-gray-100 text-gray-800 hover:bg-gray-200 border border-gray-100;
+}
 
-  .btn-secondary {
-    @apply btn bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-400 border border-gray-100;
-  }
+.btn-ghost {
+  @apply btn bg-transparent text-gray-700 hover:bg-gray-100;
+}
 
-  .btn-ghost {
-    @apply btn bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-400;
-  }
+.btn-outline {
+  @apply btn border border-gray-100 bg-white hover:bg-gray-25;
+}
 
-  .btn-outline {
-    @apply btn border border-gray-100 bg-white hover:bg-gray-25 focus:ring-gray-400;
-  }
+.btn-danger {
+  @apply btn bg-red-500 text-white hover:bg-red-600;
+}
 
-  .btn-danger {
-    @apply btn bg-red-500 text-white hover:bg-red-600 focus:ring-red-500;
-  }
+/* Inputs */
+.input {
+  @apply w-full px-3 py-2 border border-gray-100 rounded-sm shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-solidus-red focus:border-solidus-red;
+}
 
-  /* Cards - Solidus style with gray-100 border */
-  .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-100;
-  }
+.label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
 
-  /* Inputs */
-  .input {
-    @apply w-full px-3 py-2 border border-gray-100 rounded-sm shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-solidus-red focus:border-solidus-red;
-  }
+/* Badges - Solidus exact colors */
+.badge-success {
+  @apply badge bg-seafoam text-forest;
+}
 
-  .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
-  }
+.badge-warning {
+  @apply badge bg-papaya-whip text-orange;
+}
 
-  /* Badges - Solidus exact colors */
-  .badge {
-    @apply inline-flex items-center px-3 py-0.5 rounded-full text-sm font-semibold whitespace-nowrap;
-  }
+.badge-danger {
+  @apply badge bg-red-100 text-red-500;
+}
 
-  .badge-success {
-    @apply badge bg-seafoam text-forest;
-  }
+.badge-info {
+  @apply badge bg-sky text-blue;
+}
 
-  .badge-warning {
-    @apply badge bg-papaya-whip text-orange;
-  }
+.badge-gray {
+  @apply badge bg-graphite-light text-black;
+}
 
-  .badge-danger {
-    @apply badge bg-red-100 text-red-500;
-  }
+/* Table styles - Solidus style */
+.table-container {
+  @apply rounded-lg border border-gray-100 overflow-hidden;
+}
 
-  .badge-info {
-    @apply badge bg-sky text-blue;
-  }
+.table-header {
+  @apply bg-gray-15 text-gray-700 text-left text-sm font-medium;
+}
 
-  .badge-gray {
-    @apply badge bg-graphite-light text-black;
-  }
+.table-row {
+  @apply border-b border-gray-100 last:border-0 hover:bg-gray-50;
+}
 
-  /* Table styles - Solidus style */
-  .table-container {
-    @apply rounded-lg border border-gray-100 overflow-hidden;
-  }
-
-  .table-header {
-    @apply bg-gray-15 text-gray-700 text-left text-sm font-medium;
-  }
-
-  .table-row {
-    @apply border-b border-gray-100 last:border-0 hover:bg-gray-50;
-  }
-
-  .table-cell {
-    @apply px-4 py-3 text-sm text-black;
-  }
+.table-cell {
+  @apply px-4 py-3 text-sm text-black;
 }
 
 /* Solidus-style toolbar */
@@ -102,12 +191,16 @@ body {
 
 /* Product card hover effect */
 .product-card {
-  @apply card overflow-hidden transition-shadow hover:shadow-base;
+  @apply card overflow-hidden transition-shadow;
+}
+.product-card:hover {
+  box-shadow: var(--shadow-base);
 }
 
 /* Loading spinner - Solidus red */
 .spinner {
-  @apply animate-spin h-5 w-5 border-2 border-gray-200 border-t-solidus-red rounded-full;
+  @apply animate-spin h-5 w-5 border-2 border-gray-200 rounded-full;
+  border-top-color: var(--color-solidus-red);
 }
 
 /* Link styles */

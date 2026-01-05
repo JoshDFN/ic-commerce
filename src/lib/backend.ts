@@ -82,14 +82,17 @@ export async function getAgent(): Promise<HttpAgent> {
   const client = await initAuth();
   const identity = client.getIdentity();
 
-  agent = new HttpAgent({
+  const isLocal = DFX_NETWORK === 'local';
+
+  // Use the static create method for proper async initialization
+  agent = await HttpAgent.create({
     host: HOST,
     identity,
+    // For local development, fetch root key automatically and disable query signature verification
+    // (local replica doesn't have the same certificate chain as mainnet)
+    shouldFetchRootKey: isLocal,
+    verifyQuerySignatures: !isLocal,
   });
-
-  if (DFX_NETWORK === 'local') {
-    await agent.fetchRootKey();
-  }
 
   return agent;
 }

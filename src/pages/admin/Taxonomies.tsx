@@ -133,7 +133,7 @@ export default function AdminTaxonomies() {
     }
   }
 
-  function renderTaxonTree(taxons: Taxon[], parentId: bigint | null = null, depth = 0): JSX.Element[] {
+  function renderTaxonTree(taxons: Taxon[], parentId: bigint | null = null, depth = 0): React.ReactElement[] {
     return taxons
       .filter(t => {
         if (parentId === null) return t.parent_id === null || t.depth === BigInt(0);

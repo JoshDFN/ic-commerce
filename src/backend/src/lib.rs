@@ -232,11 +232,12 @@ fn get_products(params: ProductQueryParams) -> Result<ProductListResponse, Strin
             conditions.push("EXISTS (SELECT 1 FROM stock_items si2 JOIN variants v2 ON si2.variant_id = v2.id WHERE v2.product_id = p.id AND si2.count_on_hand > 0 AND si2.deleted_at IS NULL AND v2.deleted_at IS NULL)".to_string());
         }
 
-        // Search
+        // Search (escape SQL LIKE wildcards to prevent query slowdown attacks)
         if let Some(ref q) = params.q {
             let param_num = query_params.len() + 1;
-            conditions.push(format!("(p.name LIKE ?{} OR p.description LIKE ?{})", param_num, param_num));
-            query_params.push(Box::new(format!("%{}%", q)));
+            conditions.push(format!("(p.name LIKE ?{} ESCAPE '\\' OR p.description LIKE ?{} ESCAPE '\\')", param_num, param_num));
+            let escaped = q.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_");
+            query_params.push(Box::new(format!("%{}%", escaped)));
         }
 
         // Category filter
@@ -3471,17 +3472,20 @@ fn admin_get_users(params: UserQueryParams) -> Result<UserListResponse, String> 
         let limit = params.per_page.unwrap_or(20);
         let offset = (params.page.unwrap_or(1) - 1) * limit;
 
-        // Use parameterized queries to prevent SQL injection
-        let search_pattern = params.q.as_ref().map(|q| format!("%{}%", q));
+        // Escape SQL LIKE wildcards to prevent query slowdown attacks
+        let search_pattern = params.q.as_ref().map(|q| {
+            let escaped = q.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_");
+            format!("%{}%", escaped)
+        });
 
         let (query, count_query) = match (&search_pattern, &params.role) {
             (Some(_), Some(_)) => (
-                format!("SELECT id, principal, email, role, created_at FROM users WHERE (principal LIKE ?1 OR email LIKE ?1) AND role = ?2 ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset),
-                "SELECT COUNT(*) FROM users WHERE (principal LIKE ?1 OR email LIKE ?1) AND role = ?2".to_string()
+                format!("SELECT id, principal, email, role, created_at FROM users WHERE (principal LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\') AND role = ?2 ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset),
+                "SELECT COUNT(*) FROM users WHERE (principal LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\') AND role = ?2".to_string()
             ),
             (Some(_), None) => (
-                format!("SELECT id, principal, email, role, created_at FROM users WHERE (principal LIKE ?1 OR email LIKE ?1) ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset),
-                "SELECT COUNT(*) FROM users WHERE (principal LIKE ?1 OR email LIKE ?1)".to_string()
+                format!("SELECT id, principal, email, role, created_at FROM users WHERE (principal LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\') ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset),
+                "SELECT COUNT(*) FROM users WHERE (principal LIKE ?1 ESCAPE '\\' OR email LIKE ?1 ESCAPE '\\')".to_string()
             ),
             (None, Some(_)) => (
                 format!("SELECT id, principal, email, role, created_at FROM users WHERE role = ?1 ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, offset),
@@ -3570,10 +3574,13 @@ fn admin_get_customers(params: CustomerQueryParams) -> Result<CustomerListRespon
         let page = params.page.unwrap_or(1);
         let offset = (page - 1) * limit;
 
-        // Use parameterized queries to prevent SQL injection
-        let search_pattern = params.q.as_ref().map(|q| format!("%{}%", q));
+        // Escape SQL LIKE wildcards to prevent query slowdown attacks
+        let search_pattern = params.q.as_ref().map(|q| {
+            let escaped = q.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_");
+            format!("%{}%", escaped)
+        });
         let has_search = search_pattern.is_some();
-        let customer_type_filter = params.customer_type.as_ref().map(|ct| ct.as_str());
+        let customer_type_filter = params.customer_type.as_deref();
 
         // Build the base WHERE clause based on customer_type filter
         let type_clause = match customer_type_filter {
@@ -3586,7 +3593,7 @@ fn admin_get_customers(params: CustomerQueryParams) -> Result<CustomerListRespon
         let (count_sql, data_sql) = if has_search {
             (
                 format!(
-                    "SELECT COUNT(DISTINCT o.email) FROM orders o WHERE o.email IS NOT NULL AND o.email != '' AND o.email LIKE ?1{}",
+                    "SELECT COUNT(DISTINCT o.email) FROM orders o WHERE o.email IS NOT NULL AND o.email != '' AND o.email LIKE ?1 ESCAPE '\\'{}",
                     type_clause
                 ),
                 format!(
@@ -3600,7 +3607,7 @@ fn admin_get_customers(params: CustomerQueryParams) -> Result<CustomerListRespon
                         MAX(o.created_at) as last_order_at
                        FROM orders o
                        LEFT JOIN users u ON o.user_id = u.id
-                       WHERE o.email IS NOT NULL AND o.email != '' AND o.email LIKE ?1{}
+                       WHERE o.email IS NOT NULL AND o.email != '' AND o.email LIKE ?1 ESCAPE '\\'{}
                        GROUP BY o.email
                        ORDER BY last_order_at DESC
                        LIMIT {} OFFSET {}"#,
