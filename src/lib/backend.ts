@@ -37,7 +37,7 @@ export async function login(): Promise<boolean> {
     client.login({
       identityProvider: DFX_NETWORK === 'local'
         ? `http://${II_CANISTER_ID}.localhost:4943`
-        : `https://identity.ic0.app`,
+        : `https://id.ai`,
       onSuccess: () => {
         agent = null; // Reset agent to use new identity
         backend = null;
