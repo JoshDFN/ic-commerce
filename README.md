@@ -89,8 +89,6 @@ dfx deploy frontend
 
 ### Option 2: Docker (Quick Testing)
 
-> **Note**: Docker is for quick testing without installing dependencies. Data is ephemeral - all canister state is lost when the container stops. For development work, use Option 1.
-
 **Pre-built image** (fastest):
 ```bash
 docker run -p 4943:4943 -p 5173:5173 joshdfn/ic-commerce
@@ -118,7 +116,22 @@ Wait for startup to complete. You'll see:
 
 **Hot reload**: Edit files in `src/` and changes reflect immediately.
 
-**Stop**: Press `Ctrl+C` or run `docker compose down`
+**Data Persistence**: Docker mode supports data persistence between restarts:
+```bash
+# Graceful stop (preserves data)
+docker compose stop
+
+# Restart (restores previous state)
+docker compose start
+
+# Full shutdown (keeps volumes)
+docker compose down
+
+# Complete reset (wipes all data)
+docker compose down -v
+```
+
+> **Note**: Data persists only with graceful shutdown (`docker compose stop` or Ctrl+C). Abrupt termination may lose recent changes. For production data, deploy to IC mainnet.
 
 ### Access the App
 
@@ -209,7 +222,7 @@ dfx generate
 
 ## Mainnet Deployment
 
-> **Note**: Docker is for **development/testing only**. Data is ephemeral and lost when containers stop. For production with persistent data, deploy to IC mainnet.
+> **Note**: Docker is for development/testing only. For production with persistent data, deploy to IC mainnet.
 
 ### Prerequisites
 

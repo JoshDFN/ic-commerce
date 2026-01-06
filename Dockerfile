@@ -41,6 +41,10 @@ RUN cargo install wasi2ic
 RUN DFXVM_INIT_YES=1 sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
 ENV PATH="/home/developer/.local/share/dfx/bin:${PATH}"
 
+# Create directories for Docker volume mounts (must exist with correct ownership)
+RUN mkdir -p /home/developer/.local/share/dfx/network \
+    && mkdir -p /home/developer/.config/dfx
+
 # Set working directory for the app
 WORKDIR /app
 
@@ -52,6 +56,9 @@ RUN npm install
 
 # Copy the rest of the application
 COPY --chown=developer:developer . .
+
+# Create backup directory for canister IDs persistence
+RUN mkdir -p .dfx-backup
 
 # Expose ports
 # 4943 - dfx replica

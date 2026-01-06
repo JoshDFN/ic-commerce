@@ -1,17 +1,24 @@
 services:
   ic-commerce:
     build: .
+    # Give dfx time to shutdown cleanly and save state (default is 10s)
+    stop_grace_period: 30s
     ports:
       # DFX replica - access canisters at http://localhost:4943
       - "4943:4943"
       # Vite dev server with hot reload
       - "5173:5173"
     volumes:
-      # Mount source code for hot reload (excludes node_modules and build artifacts)
+      # Mount source code for hot reload
       - ./src:/app/src:delegated
       - ./public:/app/public:delegated
-      # Persist dfx state between restarts
-      - dfx-data:/home/developer/.local/share/dfx
+      # Persist dfx replica state (PocketIC state, canister data)
+      # Mount network subdir only - NOT .local/share/dfx which contains binaries
+      - dfx-network:/home/developer/.local/share/dfx/network
+      # Persist dfx identity for consistent principals
+      - dfx-config:/home/developer/.config/dfx
+      # Persist canister IDs backup (since .dfx/local can't be volume-mounted)
+      - dfx-backup:/app/.dfx-backup
       # Persist cargo cache for faster rebuilds
       - cargo-cache:/home/developer/.cargo/registry
       - cargo-git:/home/developer/.cargo/git
@@ -21,6 +28,8 @@ services:
     tty: true
 
 volumes:
-  dfx-data:
+  dfx-network:
+  dfx-config:
+  dfx-backup:
   cargo-cache:
   cargo-git:
