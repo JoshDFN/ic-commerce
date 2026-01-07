@@ -333,7 +333,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - **[Solidus](https://github.com/solidusio/solidus)**: This project's data model and admin UX design were inspired by Solidus, an open-source e-commerce platform for Ruby on Rails. The implementation is entirely new, written in Rust for the Internet Computer.
 - **[DFINITY](https://internetcomputer.org/)**: Internet Computer platform
-- **[ic-sqlite](https://github.com/AmbroseFernandes/ic-sqlite)**: SQLite for IC canisters
+- **[ic-rusqlite](https://github.com/wasm-forge/ic-rusqlite)**: SQLite for IC canisters
 
 ## License
 
